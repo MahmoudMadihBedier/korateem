@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -7,13 +8,25 @@ abstract class IAuthService {
   Future<void> signOut();
   Future<User?> signInWithGoogle();
   Stream<User?> get userChanges;
+  User? get currentUser;
 }
 
-class AuthService implements IAuthService {
+class AuthService extends ChangeNotifier implements IAuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  User? _user;
+
+  AuthService() {
+    _auth.authStateChanges().listen((u) {
+      _user = u;
+      notifyListeners();
+    });
+  }
 
   @override
   Stream<User?> get userChanges => _auth.authStateChanges();
+
+  @override
+  User? get currentUser => _user;
 
   @override
   Future<User?> signInWithEmail(String email, String password) async {
@@ -21,7 +34,9 @@ class AuthService implements IAuthService {
       email: email,
       password: password,
     );
-    return result.user;
+    _user = result.user;
+    notifyListeners();
+    return _user;
   }
 
   @override
@@ -30,12 +45,16 @@ class AuthService implements IAuthService {
       email: email,
       password: password,
     );
-    return result.user;
+    _user = result.user;
+    notifyListeners();
+    return _user;
   }
 
   @override
   Future<void> signOut() async {
     await _auth.signOut();
+    _user = null;
+    notifyListeners();
   }
 
   @override
@@ -49,6 +68,8 @@ class AuthService implements IAuthService {
       idToken: googleAuth.idToken,
     );
     final result = await _auth.signInWithCredential(credential);
-    return result.user;
+    _user = result.user;
+    notifyListeners();
+    return _user;
   }
 }
