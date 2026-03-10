@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+// Enhance theme for modern Arabic UI and performance
 final ThemeData korateemTheme = ThemeData(
   fontFamily: 'Cairo',
   brightness: Brightness.light,
@@ -24,6 +25,12 @@ final ThemeData korateemTheme = ThemeData(
     ),
     bodyMedium: TextStyle(
       fontSize: 16,
+      color: Colors.black,
+      fontFamily: 'Cairo',
+    ),
+    titleLarge: TextStyle(
+      fontSize: 22,
+      fontWeight: FontWeight.bold,
       color: Colors.black,
       fontFamily: 'Cairo',
     ),
