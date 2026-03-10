@@ -11,14 +11,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AuthService(),
-      child: const MyApp(),
-    ),
+    ChangeNotifierProvider(create: (_) => AuthService(), child: const MyApp()),
   );
 }
 

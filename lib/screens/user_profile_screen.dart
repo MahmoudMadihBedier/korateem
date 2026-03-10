@@ -30,10 +30,22 @@ class UserProfileScreen extends StatelessWidget {
                   backgroundImage: NetworkImage(data?['profileImage'] ?? ''),
                 ),
                 SizedBox(height: 16),
-                Text('الاسم: ${data?['name'] ?? ''}', style: Theme.of(context).textTheme.bodyLarge),
-                Text('البريد الإلكتروني: ${data?['email'] ?? ''}', style: Theme.of(context).textTheme.bodyLarge),
-                Text('رقم الهاتف: ${data?['phone'] ?? ''}', style: Theme.of(context).textTheme.bodyLarge),
-                Text('التقييم: ${data?['rating'] ?? '0'}', style: Theme.of(context).textTheme.bodyLarge),
+                Text(
+                  'الاسم: ${data?['name'] ?? ''}',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                Text(
+                  'البريد الإلكتروني: ${data?['email'] ?? ''}',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                Text(
+                  'رقم الهاتف: ${data?['phone'] ?? ''}',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                Text(
+                  'التقييم: ${data?['rating'] ?? '0'}',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
               ],
             ),
           ),

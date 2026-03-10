@@ -27,8 +27,13 @@ class FieldsScreen extends StatelessWidget {
                   leading: CircleAvatar(
                     backgroundImage: NetworkImage(data['images']?[0] ?? ''),
                   ),
-                  title: Text(data['name'] ?? '', style: Theme.of(context).textTheme.bodyLarge),
-                  subtitle: Text('الموقع: ${data['location'] ?? ''}\nالسعر: ${data['price'] ?? ''}'),
+                  title: Text(
+                    data['name'] ?? '',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  subtitle: Text(
+                    'الموقع: ${data['location'] ?? ''}\nالسعر: ${data['price'] ?? ''}',
+                  ),
                   trailing: ElevatedButton(
                     child: Text('حجز'),
                     onPressed: () {

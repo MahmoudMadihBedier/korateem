@@ -24,7 +24,10 @@ class OwnerPortalScreen extends StatelessWidget {
               return Card(
                 margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 child: ListTile(
-                  title: Text(data['name'] ?? '', style: Theme.of(context).textTheme.bodyLarge),
+                  title: Text(
+                    data['name'] ?? '',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
                   subtitle: Text('السعر: ${data['price'] ?? ''}'),
                   onTap: () {
                     // Navigate to field management

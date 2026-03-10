@@ -18,7 +18,10 @@ class BookingScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('اختر موعد الحجز:', style: Theme.of(context).textTheme.bodyLarge),
+            Text(
+              'اختر موعد الحجز:',
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
             Wrap(
               spacing: 8,
               children: [
@@ -31,9 +34,9 @@ class BookingScreen extends StatelessWidget {
                         authService.userChanges.first.toString(),
                         slot,
                       );
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('تم الحجز بنجاح')),
-                      );
+                      ScaffoldMessenger.of(
+                        context,
+                      ).showSnackBar(SnackBar(content: Text('تم الحجز بنجاح')));
                     },
                   ),
               ],

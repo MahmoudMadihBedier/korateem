@@ -24,8 +24,13 @@ class TeamScreen extends StatelessWidget {
               return Card(
                 margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 child: ListTile(
-                  title: Text(data['name'] ?? '', style: Theme.of(context).textTheme.bodyLarge),
-                  subtitle: Text('عدد الأعضاء: ${(data['members'] as List).length}'),
+                  title: Text(
+                    data['name'] ?? '',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  subtitle: Text(
+                    'عدد الأعضاء: ${(data['members'] as List).length}',
+                  ),
                   onTap: () {
                     // Navigate to team details
                   },
