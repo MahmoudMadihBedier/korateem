@@ -31,7 +31,7 @@ class BookingScreen extends StatelessWidget {
                     onPressed: () async {
                       await bookingService.bookField(
                         fieldId,
-                        authService.userChanges.first.toString(),
+                        authService.currentUser?.uid ?? '',
                         slot,
                       );
                       ScaffoldMessenger.of(

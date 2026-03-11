@@ -8,6 +8,7 @@ import 'package:korateem/services/auth_service.dart';
 import 'package:provider/provider.dart';
 import 'package:korateem/ui/theme.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,13 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'كورة تيم',
       theme: korateemTheme,
+      locale: const Locale('ar'),
+      supportedLocales: [Locale('ar')],
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: StreamBuilder(
         stream: authService.userChanges,
         builder: (context, snapshot) {
@@ -39,8 +47,7 @@ class MyApp extends StatelessWidget {
           }
         },
       ),
-      locale: const Locale('ar'),
-      supportedLocales: const [Locale('ar')],
+      // ...existing code...
     );
   }
 }
@@ -203,10 +210,12 @@ class BookingScreen extends StatelessWidget {
                               .collection('bookings')
                               .add({
                                 'fieldId': fieldId,
-                                'userId': Provider.of<AuthProvider>(
-                                  context,
-                                  listen: false,
-                                ).user?.uid,
+                                'userId':
+                                    Provider.of<AuthService>(
+                                      context,
+                                      listen: false,
+                                    ).currentUser?.uid ??
+                                    '',
                                 'time': slot,
                                 'status': 'pending',
                               });
