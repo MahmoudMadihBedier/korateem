@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import 'package:korateem/services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
+
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }

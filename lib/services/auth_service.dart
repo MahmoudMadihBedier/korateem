@@ -101,11 +101,31 @@ class AuthService extends ChangeNotifier implements IAuthService {
   Future<User?> signInWithGoogle() async {
     try {
       _errorMessage = null;
-      final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
-      if (googleUser == null) return null;
+
+      // Initialize Google Sign-In with proper client ID
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile'],
+      );
+
+      // Sign out first to show account selection
+      await googleSignIn.signOut();
+
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+      if (googleUser == null) {
+        _errorMessage = 'تم إلغاء تسجيل الدخول';
+        notifyListeners();
+        return null;
+      }
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
+
+      if (googleAuth.accessToken == null || googleAuth.idToken == null) {
+        _errorMessage = 'فشل الحصول على بيانات Google';
+        notifyListeners();
+        return null;
+      }
+
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -118,22 +138,26 @@ class AuthService extends ChangeNotifier implements IAuthService {
     } on FirebaseAuthException catch (e) {
       _handleAuthError(e);
       return null;
+    } catch (e) {
+      _errorMessage = 'خطأ في تسجيل الدخول عبر Google: ${e.toString()}';
+      notifyListeners();
+      return null;
     }
   }
 
   void _handleAuthError(FirebaseAuthException e) {
     switch (e.code) {
       case 'weak-password':
-        _errorMessage = 'كلمة المرور ضعيفة جداً';
+        _errorMessage = 'كلمة المرور ضعيفة جداً (يجب أن تكون 6 أحرف على الأقل)';
         break;
       case 'email-already-in-use':
-        _errorMessage = 'البريد الإلكتروني مستخدم بالفعل';
+        _errorMessage = 'البريد الإلكتروني مستخدم بالفعل. حاول تسجيل الدخول';
         break;
       case 'invalid-email':
         _errorMessage = 'البريد الإلكتروني غير صحيح';
         break;
       case 'user-disabled':
-        _errorMessage = 'هذا الحساب معطل';
+        _errorMessage = 'هذا الحساب معطل. تواصل مع الدعم';
         break;
       case 'user-not-found':
         _errorMessage = 'لا يوجد حساب بهذا البريد الإلكتروني';
@@ -141,8 +165,17 @@ class AuthService extends ChangeNotifier implements IAuthService {
       case 'wrong-password':
         _errorMessage = 'كلمة المرور غير صحيحة';
         break;
+      case 'operation-not-allowed':
+        _errorMessage = 'هذه الطريقة غير مفعلة. تفعلها من لوحة Firebase';
+        break;
+      case 'too-many-requests':
+        _errorMessage = 'محاولات كثيرة جداً. حاول لاحقاً';
+        break;
+      case 'network-request-failed':
+        _errorMessage = 'خطأ في الاتصال بالإنترنت';
+        break;
       default:
-        _errorMessage = e.message ?? 'حدث خطأ غير متوقع';
+        _errorMessage = e.message ?? 'حدث خطأ: ${e.code}';
     }
     notifyListeners();
   }

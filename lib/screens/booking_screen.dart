@@ -4,7 +4,7 @@ import '../services/booking_service.dart';
 
 class BookingScreen extends StatefulWidget {
   final String fieldId;
-  BookingScreen({required this.fieldId});
+  const BookingScreen({super.key, required this.fieldId});
 
   @override
   State<BookingScreen> createState() => _BookingScreenState();
@@ -191,7 +191,7 @@ class _BookingScreenState extends State<BookingScreen> {
                     ? () => setState(() => _numberOfPlayers--)
                     : null,
               ),
-              Container(
+              SizedBox(
                 width: 50,
                 child: Center(
                   child: Text(

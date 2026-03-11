@@ -12,7 +12,20 @@
           "package_name": "com.example.korateem"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "37791790941-h9p8fnadjh89onhku1kaujtsepq76ohh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.korateem",
+            "certificate_hash": "338d33abf90609311329e8146623a576b5f7c20b"
+          }
+        },
+        {
+          "client_id": "37791790941-qgokqnsogu97hl3dj1pifbhi68esioor.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDV5P0Q9LCTqlvsMCKA2M_STVbhGO4jBew"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "37791790941-qgokqnsogu97hl3dj1pifbhi68esioor.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "37791790941-eq12cblc6ghaela2j2seifv0s9bd13rd.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.korateem"
+              }
+            }
+          ]
         }
       }
     }

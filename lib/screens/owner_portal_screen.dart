@@ -3,7 +3,7 @@ import '../services/owner_service.dart';
 
 class OwnerPortalScreen extends StatelessWidget {
   final String ownerId;
-  OwnerPortalScreen({required this.ownerId});
+  const OwnerPortalScreen({super.key, required this.ownerId});
 
   @override
   Widget build(BuildContext context) {

@@ -36,7 +36,7 @@ final ThemeData korateemTheme = ThemeData(
     ),
   ),
   appBarTheme: AppBarTheme(
-    color: Color(0xFF1E88E5),
+    backgroundColor: Color(0xFF1E88E5),
     elevation: 0,
     iconTheme: IconThemeData(color: Colors.white),
     titleTextStyle: TextStyle(

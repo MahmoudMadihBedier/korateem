@@ -3,7 +3,7 @@ import '../services/user_service.dart';
 
 class UserProfileScreen extends StatelessWidget {
   final String uid;
-  UserProfileScreen({required this.uid});
+  const UserProfileScreen({super.key, required this.uid});
 
   @override
   Widget build(BuildContext context) {

@@ -3,6 +3,8 @@ import '../services/field_service.dart';
 import 'booking_screen.dart';
 
 class FieldsScreen extends StatefulWidget {
+  const FieldsScreen({super.key});
+
   @override
   State<FieldsScreen> createState() => _FieldsScreenState();
 }
