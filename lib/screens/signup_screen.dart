@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
-import 'signup_screen.dart';
 
-class LoginScreen extends StatefulWidget {
+class SignupScreen extends StatefulWidget {
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  _SignupScreenState createState() => _SignupScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _SignupScreenState extends State<SignupScreen> {
+  final nameController = TextEditingController();
   final emailController = TextEditingController();
+  final phoneController = TextEditingController();
   final passwordController = TextEditingController();
+  final confirmPasswordController = TextEditingController();
   bool _isLoading = false;
-  bool _passwordVisible = false;
+  bool _passwordsVisible = false;
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +22,8 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            // Header with gradient
             Container(
-              height: 280,
+              height: 200,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [Color(0xFF1E88E5), Color(0xFF43A047)],
@@ -34,86 +35,97 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.sports_soccer, size: 80, color: Colors.white),
-                    SizedBox(height: 20),
+                    Icon(Icons.sports_soccer, size: 60, color: Colors.white),
+                    SizedBox(height: 12),
                     Text(
                       'كورة تيم',
                       style: TextStyle(
-                        fontSize: 48,
+                        fontSize: 32,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'احجز ملعبك وشكل فريقك',
-                      style: TextStyle(fontSize: 16, color: Colors.white70),
                     ),
                   ],
                 ),
               ),
             ),
-            // Login form
             Padding(
               padding: EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'تسجيل الدخول',
+                    'إنشاء حساب جديد',
                     style: TextStyle(
-                      fontSize: 28,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
                   ),
                   SizedBox(height: 24),
                   _buildTextField(
+                    controller: nameController,
+                    label: 'الاسم الكامل',
+                    icon: Icons.person,
+                    hint: 'أحمد محمد',
+                  ),
+                  SizedBox(height: 16),
+                  _buildTextField(
                     controller: emailController,
                     label: 'البريد الإلكتروني',
                     icon: Icons.email,
+                    hint: 'your@email.com',
                     keyboardType: TextInputType.emailAddress,
+                  ),
+                  SizedBox(height: 16),
+                  _buildTextField(
+                    controller: phoneController,
+                    label: 'رقم الهاتف',
+                    icon: Icons.phone,
+                    hint: '+201012345678',
+                    keyboardType: TextInputType.phone,
                   ),
                   SizedBox(height: 16),
                   _buildTextField(
                     controller: passwordController,
                     label: 'كلمة المرور',
                     icon: Icons.lock,
-                    obscureText: !_passwordVisible,
+                    hint: '••••••••',
+                    obscureText: !_passwordsVisible,
                     suffixIcon: GestureDetector(
-                      onTap: () =>
-                          setState(() => _passwordVisible = !_passwordVisible),
+                      onTap: () => setState(
+                        () => _passwordsVisible = !_passwordsVisible,
+                      ),
                       child: Icon(
-                        _passwordVisible
+                        _passwordsVisible
                             ? Icons.visibility
                             : Icons.visibility_off,
                         color: Colors.grey,
                       ),
                     ),
                   ),
-                  SizedBox(height: 24),
-                  _buildLoginButton(),
                   SizedBox(height: 16),
-                  _buildDivider(),
-                  SizedBox(height: 16),
-                  _buildGoogleButton(),
+                  _buildTextField(
+                    controller: confirmPasswordController,
+                    label: 'تأكيد كلمة المرور',
+                    icon: Icons.lock_outline,
+                    hint: '••••••••',
+                    obscureText: !_passwordsVisible,
+                  ),
                   SizedBox(height: 24),
+                  _buildSignupButton(),
+                  SizedBox(height: 16),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'ليس لديك حساب؟ ',
+                        'لديك حساب بالفعل؟ ',
                         style: TextStyle(color: Colors.grey[600]),
                       ),
                       GestureDetector(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => SignupScreen(),
-                          ),
-                        ),
+                        onTap: () => Navigator.pop(context),
                         child: Text(
-                          'إنشاء حساب جديد',
+                          'تسجيل الدخول',
                           style: TextStyle(
                             color: Color(0xFF1E88E5),
                             fontWeight: FontWeight.bold,
@@ -136,6 +148,7 @@ class _LoginScreenState extends State<LoginScreen> {
     required TextEditingController controller,
     required String label,
     required IconData icon,
+    String hint = '',
     bool obscureText = false,
     TextInputType keyboardType = TextInputType.text,
     Widget? suffixIcon,
@@ -146,6 +159,7 @@ class _LoginScreenState extends State<LoginScreen> {
       keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
+        hintText: hint,
         prefixIcon: Icon(icon, color: Color(0xFF1E88E5)),
         suffixIcon: suffixIcon,
         border: OutlineInputBorder(
@@ -162,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildLoginButton() {
+  Widget _buildSignupButton() {
     return Container(
       height: 56,
       decoration: BoxDecoration(
@@ -183,7 +197,7 @@ class _LoginScreenState extends State<LoginScreen> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: _isLoading ? null : _login,
+          onTap: _isLoading ? null : _signup,
           borderRadius: BorderRadius.circular(12),
           child: Center(
             child: _isLoading
@@ -196,7 +210,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   )
                 : Text(
-                    'تسجيل الدخول',
+                    'إنشاء حساب',
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -209,84 +223,54 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildDivider() {
-    return Row(
-      children: [
-        Expanded(child: Divider(color: Colors.grey[300])),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text('أو', style: TextStyle(color: Colors.grey[600])),
-        ),
-        Expanded(child: Divider(color: Colors.grey[300])),
-      ],
-    );
-  }
-
-  Widget _buildGoogleButton() {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Material(
-        color: Colors.white,
-        child: InkWell(
-          onTap: _isLoading ? null : _googleLogin,
-          borderRadius: BorderRadius.circular(12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Image.asset('assets/google_logo.png', height: 24, width: 24),
-              SizedBox(width: 12),
-              Text(
-                'تسجيل الدخول عبر جوجل',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _login() async {
+  void _signup() async {
+    if (nameController.text.isEmpty) {
+      _showError('الرجاء إدخال الاسم الكامل');
+      return;
+    }
     if (emailController.text.isEmpty) {
       _showError('الرجاء إدخال البريد الإلكتروني');
+      return;
+    }
+    if (phoneController.text.isEmpty) {
+      _showError('الرجاء إدخال رقم الهاتف');
       return;
     }
     if (passwordController.text.isEmpty) {
       _showError('الرجاء إدخال كلمة المرور');
       return;
     }
+    if (passwordController.text.length < 6) {
+      _showError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      return;
+    }
+    if (passwordController.text != confirmPasswordController.text) {
+      _showError('كلمات المرور غير متطابقة');
+      return;
+    }
 
     setState(() => _isLoading = true);
     final authService = Provider.of<AuthService>(context, listen: false);
-    final user = await authService.signInWithEmail(
+    final user = await authService.signUpWithEmail(
       emailController.text,
       passwordController.text,
+      nameController.text,
+      phoneController.text,
     );
 
     setState(() => _isLoading = false);
 
-    if (user == null) {
-      _showError(authService.errorMessage ?? 'خطأ في تسجيل الدخول');
-    }
-  }
-
-  void _googleLogin() async {
-    setState(() => _isLoading = true);
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final user = await authService.signInWithGoogle();
-
-    setState(() => _isLoading = false);
-
-    if (user == null) {
-      _showError('خطأ في تسجيل الدخول عبر جوجل');
+    if (user != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('تم إنشاء الحساب بنجاح'),
+          backgroundColor: Color(0xFF43A047),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      Navigator.pop(context);
+    } else {
+      _showError(authService.errorMessage ?? 'حدث خطأ أثناء إنشاء الحساب');
     }
   }
 
@@ -302,8 +286,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
+    nameController.dispose();
     emailController.dispose();
+    phoneController.dispose();
     passwordController.dispose();
+    confirmPasswordController.dispose();
     super.dispose();
   }
 }
