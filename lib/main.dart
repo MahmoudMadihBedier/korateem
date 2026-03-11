@@ -1,121 +1,235 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:korateem/screens/login_screen.dart';
+import 'package:korateem/screens/home_screen.dart';
+import 'package:korateem/services/auth_service.dart';
+import 'package:provider/provider.dart';
+import 'package:korateem/ui/theme.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  runApp(
+    ChangeNotifierProvider(create: (_) => AuthService(), child: const MyApp()),
+  );
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+      title: 'كورة تيم',
+      theme: korateemTheme,
+      locale: const Locale('ar'),
+      supportedLocales: [Locale('ar')],
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      home: StreamBuilder(
+        stream: authService.userChanges,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Scaffold(body: Center(child: CircularProgressIndicator()));
+          }
+          if (snapshot.hasData) {
+            return HomeScreen();
+          } else {
+            return LoginScreen();
+          }
+        },
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      // ...existing code...
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
-  }
+class UserProfileScreen extends StatelessWidget {
+  final String uid;
+  UserProfileScreen({required this.uid});
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance.collection('users').doc(uid).get(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return Scaffold(
+            appBar: AppBar(title: Text('الملف الشخصي')),
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        var data = snapshot.data!.data() as Map<String, dynamic>;
+        return Scaffold(
+          appBar: AppBar(title: Text('الملف الشخصي')),
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CircleAvatar(
+                  radius: 40,
+                  backgroundImage: NetworkImage(data['profileImage'] ?? ''),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'الاسم: ${data['name'] ?? ''}',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                Text(
+                  'البريد الإلكتروني: ${data['email'] ?? ''}',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                Text(
+                  'رقم الهاتف: ${data['phone'] ?? ''}',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                Text(
+                  'التقييم: ${data['rating'] ?? '0'}',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                // Add more fields as needed
+              ],
             ),
-          ],
-        ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class FieldsScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('الملاعب القريبة')),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('fields').snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          }
+          var fields = snapshot.data!.docs;
+          if (fields.isEmpty) {
+            return Center(child: Text('لا توجد ملاعب قريبة'));
+          }
+          return ListView.builder(
+            itemCount: fields.length,
+            itemBuilder: (context, index) {
+              var data = fields[index].data() as Map<String, dynamic>;
+              return Card(
+                margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: NetworkImage(data['images']?[0] ?? ''),
+                  ),
+                  title: Text(
+                    data['name'] ?? '',
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                  subtitle: Text(
+                    'الموقع: ${data['location'] ?? ''}\nالسعر: ${data['price'] ?? ''}',
+                  ),
+                  trailing: ElevatedButton(
+                    child: Text('حجز'),
+                    onPressed: () {
+                      // Navigate to booking screen
+                    },
+                  ),
+                  onTap: () {
+                    // Navigate to field profile
+                  },
+                ),
+              );
+            },
+          );
+        },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+    );
+  }
+}
+
+class BookingScreen extends StatelessWidget {
+  final String fieldId;
+  BookingScreen({required this.fieldId});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('حجز الملعب')),
+      body: FutureBuilder<DocumentSnapshot>(
+        future: FirebaseFirestore.instance
+            .collection('fields')
+            .doc(fieldId)
+            .get(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          }
+          var data = snapshot.data!.data() as Map<String, dynamic>;
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'اسم الملعب: ${data['name'] ?? ''}',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                Text(
+                  'الموقع: ${data['location'] ?? ''}',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                Text(
+                  'السعر: ${data['price'] ?? ''}',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                SizedBox(height: 24),
+                Text(
+                  'اختر موعد الحجز:',
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                // Example time slots
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    for (var slot in ['6:00', '7:00', '8:00', '9:00'])
+                      ElevatedButton(
+                        child: Text(slot),
+                        onPressed: () async {
+                          // Save booking to Firestore
+                          await FirebaseFirestore.instance
+                              .collection('bookings')
+                              .add({
+                                'fieldId': fieldId,
+                                'userId':
+                                    Provider.of<AuthService>(
+                                      context,
+                                      listen: false,
+                                    ).currentUser?.uid ??
+                                    '',
+                                'time': slot,
+                                'status': 'pending',
+                              });
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('تم الحجز بنجاح')),
+                          );
+                        },
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
