@@ -157,6 +157,104 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 SizedBox(height: 24),
                 Text(
+                  'الميزات الجديدة',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                SizedBox(height: 16),
+                _buildQuickActionCard(
+                  icon: Icons.person_add,
+                  title: 'ابحث عن صديق',
+                  subtitle: 'ابحث عن لاعبين آخرين',
+                  color: Color(0xFF8E24AA),
+                  onTap: () {
+                    final userId = Provider.of<AuthService>(context, listen: false).currentUser?.uid ?? '';
+                    Navigator.pushNamed(
+                      context,
+                      '/search-friends',
+                      arguments: {'currentUserId': userId},
+                    );
+                  },
+                ),
+                SizedBox(height: 12),
+                _buildQuickActionCard(
+                  icon: Icons.star,
+                  title: 'قيّم لاعب',
+                  subtitle: 'أعط رأيك في أداء اللاعبين',
+                  color: Color(0xFFF57C00),
+                  onTap: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/rate-user',
+                      arguments: {'userId': '', 'userName': ''},
+                    );
+                  },
+                ),
+                SizedBox(height: 12),
+                _buildQuickActionCard(
+                  icon: Icons.feed,
+                  title: 'المنشورات',
+                  subtitle: 'شارك وتفاعل مع المنشورات',
+                  color: Color(0xFF0097A7),
+                  onTap: () {
+                    final userId = Provider.of<AuthService>(context, listen: false).currentUser?.uid ?? '';
+                    Navigator.pushNamed(
+                      context,
+                      '/social-feed',
+                      arguments: {'userId': userId},
+                    );
+                  },
+                ),
+                SizedBox(height: 12),
+                _buildQuickActionCard(
+                  icon: Icons.edit,
+                  title: 'تعديل ملفك',
+                  subtitle: 'حدّث بيانات ملفك الشخصي',
+                  color: Color(0xFF5E35B1),
+                  onTap: () {
+                    final userId = Provider.of<AuthService>(context, listen: false).currentUser?.uid ?? '';
+                    Navigator.pushNamed(
+                      context,
+                      '/user-profile-edit',
+                      arguments: {'userId': userId},
+                    );
+                  },
+                ),
+                SizedBox(height: 12),
+                _buildQuickActionCard(
+                  icon: Icons.sports_soccer,
+                  title: 'ملعب جديد',
+                  subtitle: 'أضف ملعبك إلى القائمة',
+                  color: Color(0xFF00695C),
+                  onTap: () {
+                    final userId = Provider.of<AuthService>(context, listen: false).currentUser?.uid ?? '';
+                    Navigator.pushNamed(
+                      context,
+                      '/stadium-profile',
+                      arguments: {'ownerId': userId},
+                    );
+                  },
+                ),
+                SizedBox(height: 12),
+                _buildQuickActionCard(
+                  icon: Icons.dashboard,
+                  title: 'لوحة التحكم',
+                  subtitle: 'إدارة ملاعبك والحجوزات',
+                  color: Color(0xFF455A64),
+                  onTap: () {
+                    final userId = Provider.of<AuthService>(context, listen: false).currentUser?.uid ?? '';
+                    Navigator.pushNamed(
+                      context,
+                      '/stadium-dashboard',
+                      arguments: {'ownerId': userId},
+                    );
+                  },
+                ),
+                SizedBox(height: 24),
+                Text(
                   'الميزات',
                   style: TextStyle(
                     fontSize: 20,

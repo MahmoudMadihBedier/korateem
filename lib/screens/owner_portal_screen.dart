@@ -9,12 +9,12 @@ class OwnerPortalScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final ownerService = OwnerService();
     return Scaffold(
-      appBar: AppBar(title: Text('بوابة صاحب الملعب')),
+      appBar: AppBar(title: const Text('بوابة صاحب الملعب')),
       body: StreamBuilder(
-        stream: ownerService.getOwnerFields(ownerId),
+        stream: ownerService.getOwnerStadiums(ownerId),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
           var fields = snapshot.data!.docs;
           return ListView.builder(
@@ -22,7 +22,7 @@ class OwnerPortalScreen extends StatelessWidget {
             itemBuilder: (context, index) {
               var data = fields[index].data() as Map<String, dynamic>;
               return Card(
-                margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 child: ListTile(
                   title: Text(
                     data['name'] ?? '',
