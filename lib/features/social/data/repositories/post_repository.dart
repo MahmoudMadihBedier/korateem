@@ -31,6 +31,9 @@ class PostRepository implements IPostRepository {
 
   @override
   Future<void> likePost(String postId, String userId) async {
+    if (postId.trim().isEmpty) {
+      throw ArgumentError('postId must not be empty');
+    }
     await posts.doc(postId).update({
       'likes': FieldValue.arrayUnion([userId]),
     });
@@ -38,6 +41,9 @@ class PostRepository implements IPostRepository {
 
   @override
   Future<void> addComment(String postId, CommentModel comment) async {
+    if (postId.trim().isEmpty) {
+      throw ArgumentError('postId must not be empty');
+    }
     await posts.doc(postId).update({
       'comments': FieldValue.arrayUnion([comment.toMap()]),
     });

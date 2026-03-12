@@ -135,11 +135,21 @@ class _FieldsScreenState extends State<FieldsScreen> {
                     topRight: Radius.circular(12),
                   ),
                   image: DecorationImage(
-                    image: NetworkImage(
-                      data['images'] != null && data['images'].isNotEmpty
-                          ? data['images'][0]
-                          : 'https://via.placeholder.com/200',
-                    ),
+                    image:
+                        () {
+                              final images = data['images'];
+                              final url = (images is List && images.isNotEmpty)
+                                  ? (images[0] is String
+                                        ? images[0] as String
+                                        : '')
+                                  : '';
+                              if (url.trim().isNotEmpty)
+                                return NetworkImage(url);
+                              return const AssetImage(
+                                'assets/images/studim.jpeg',
+                              );
+                            }()
+                            as ImageProvider,
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -238,14 +248,34 @@ class _FieldsScreenState extends State<FieldsScreen> {
         contentPadding: EdgeInsets.all(12),
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(8),
-          child: Image.network(
-            data['images'] != null && data['images'].isNotEmpty
-                ? data['images'][0]
-                : 'https://via.placeholder.com/80',
-            width: 80,
-            height: 80,
-            fit: BoxFit.cover,
-          ),
+          child: () {
+            final images = data['images'];
+            final url = (images is List && images.isNotEmpty)
+                ? (images[0] is String ? images[0] as String : '')
+                : '';
+            if (url.trim().isNotEmpty) {
+              return Image.network(
+                url,
+                width: 80,
+                height: 80,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Image.asset(
+                    'assets/images/studim.jpeg',
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                  );
+                },
+              );
+            }
+            return Image.asset(
+              'assets/images/studim.jpeg',
+              width: 80,
+              height: 80,
+              fit: BoxFit.cover,
+            );
+          }(),
         ),
         title: Text(
           data['name'] ?? '',
@@ -323,13 +353,31 @@ class _FieldsScreenState extends State<FieldsScreen> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    data['images'] != null && data['images'].isNotEmpty
-                        ? data['images'][0]
-                        : 'https://via.placeholder.com/300',
-                    height: 200,
-                    fit: BoxFit.cover,
-                  ),
+                  child: () {
+                    final images = data['images'];
+                    final url = (images is List && images.isNotEmpty)
+                        ? (images[0] is String ? images[0] as String : '')
+                        : '';
+                    if (url.trim().isNotEmpty) {
+                      return Image.network(
+                        url,
+                        height: 200,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Image.asset(
+                            'assets/images/studim.jpeg',
+                            height: 200,
+                            fit: BoxFit.cover,
+                          );
+                        },
+                      );
+                    }
+                    return Image.asset(
+                      'assets/images/studim.jpeg',
+                      height: 200,
+                      fit: BoxFit.cover,
+                    );
+                  }(),
                 ),
                 SizedBox(height: 16),
                 Text(

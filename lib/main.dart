@@ -9,7 +9,8 @@ import 'package:korateem/ui/theme.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 // Feature screen imports
 import 'screens/user_profile_edit_page.dart';
-import 'screens/user_search_friends_page.dart';
+import 'screens/user_profile_page.dart';
+import 'screens/user_search_friends_enhanced_page.dart' as user_search_enhanced;
 import 'screens/user_rating_page.dart';
 import 'screens/social_feed_page.dart';
 import 'screens/stadium_profile_page.dart';
@@ -50,12 +51,18 @@ class MyApp extends StatelessWidget {
           if (snapshot.hasData) {
             return const HomeScreen();
           } else {
-            return const LoginScreen();
+            return  LoginScreen();
           }
         },
       ),
       onGenerateRoute: (settings) {
         switch (settings.name) {
+          case '/user-profile':
+            final userId =
+                (settings.arguments as Map<String, dynamic>?)?['userId'] ?? '';
+            return MaterialPageRoute(
+              builder: (_) => UserProfilePage(userId: userId),
+            );
           case '/user-profile-edit':
             final userId =
                 (settings.arguments as Map<String, dynamic>?)?['userId'] ?? '';
@@ -63,13 +70,28 @@ class MyApp extends StatelessWidget {
               builder: (_) => UserProfileEditPage(userId: userId),
             );
           case '/search-friends':
-            final currentUserId =
-                (settings.arguments
-                    as Map<String, dynamic>?)?['currentUserId'] ??
-                '';
+            final args = settings.arguments as Map<String, dynamic>?;
+            final currentUserId = args?['currentUserId'] ?? '';
+            final currentUserName = args?['currentUserName'];
+            final currentUserImage = args?['currentUserImage'];
             return MaterialPageRoute(
-              builder: (_) =>
-                  UserSearchFriendsPage(currentUserId: currentUserId),
+              builder: (_) => user_search_enhanced.UserSearchFriendsPage(
+                currentUserId: currentUserId,
+                currentUserName: currentUserName,
+                currentUserImage: currentUserImage,
+              ),
+            );
+          case '/search-friends-enhanced':
+            final args = settings.arguments as Map<String, dynamic>?;
+            final currentUserId = args?['currentUserId'] ?? '';
+            final currentUserName = args?['currentUserName'];
+            final currentUserImage = args?['currentUserImage'];
+            return MaterialPageRoute(
+              builder: (_) => user_search_enhanced.UserSearchFriendsPage(
+                currentUserId: currentUserId,
+                currentUserName: currentUserName,
+                currentUserImage: currentUserImage,
+              ),
             );
           case '/rate-user':
             final args = settings.arguments as Map<String, dynamic>?;

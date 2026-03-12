@@ -120,6 +120,9 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF43A047),
+                      // Override theme's minSize (infinite width) since this button
+                      // lives in a Row inside a Dialog (unbounded width).
+                      minimumSize: const Size(120, 44),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 12,

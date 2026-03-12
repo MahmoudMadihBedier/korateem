@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 abstract class IAuthService {
@@ -25,6 +26,16 @@ class AuthService extends ChangeNotifier implements IAuthService {
   AuthService() {
     _auth.authStateChanges().listen((u) {
       _user = u;
+      if (u != null) {
+        // Fire-and-forget: keep Firestore user doc present even across app restarts.
+        _ensureUserDocument(
+          uid: u.uid,
+          name: u.displayName ?? '',
+          email: u.email ?? '',
+          phone: u.phoneNumber ?? '',
+          profileImage: u.photoURL,
+        );
+      }
       notifyListeners();
     });
   }
@@ -47,10 +58,23 @@ class AuthService extends ChangeNotifier implements IAuthService {
         password: password,
       );
       _user = result.user;
+      if (_user != null) {
+        await _ensureUserDocument(
+          uid: _user!.uid,
+          name: _user!.displayName ?? '',
+          email: _user!.email ?? email,
+          phone: _user!.phoneNumber ?? '',
+          profileImage: _user!.photoURL,
+        );
+      }
       notifyListeners();
       return _user;
     } on FirebaseAuthException catch (e) {
       _handleAuthError(e);
+      return null;
+    } catch (e) {
+      _errorMessage = 'حدث خطأ غير متوقع أثناء تسجيل الدخول';
+      notifyListeners();
       return null;
     }
   }
@@ -74,12 +98,23 @@ class AuthService extends ChangeNotifier implements IAuthService {
         await _user!.updateDisplayName(name);
         await _user!.reload();
         _user = _auth.currentUser;
+        await _ensureUserDocument(
+          uid: _user!.uid,
+          name: name,
+          email: _user!.email ?? email,
+          phone: phone,
+          profileImage: _user!.photoURL,
+        );
       }
 
       notifyListeners();
       return _user;
     } on FirebaseAuthException catch (e) {
       _handleAuthError(e);
+      return null;
+    } catch (e) {
+      _errorMessage = 'حدث خطأ غير متوقع أثناء إنشاء الحساب';
+      notifyListeners();
       return null;
     }
   }
@@ -102,41 +137,54 @@ class AuthService extends ChangeNotifier implements IAuthService {
     try {
       _errorMessage = null;
 
-      // Initialize Google Sign-In with proper client ID
-      final GoogleSignIn googleSignIn = GoogleSignIn(
-        scopes: ['email', 'profile'],
-      );
+      final googleSignIn = GoogleSignIn.instance;
+      await googleSignIn.initialize();
 
-      // Sign out first to show account selection
+      // Sign out first to show account selection.
       await googleSignIn.signOut();
 
-      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
-      if (googleUser == null) {
-        _errorMessage = 'تم إلغاء تسجيل الدخول';
-        notifyListeners();
-        return null;
-      }
+      final GoogleSignInAccount googleUser = await googleSignIn.authenticate(
+        scopeHint: const ['email', 'profile'],
+      );
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
-
-      if (googleAuth.accessToken == null || googleAuth.idToken == null) {
+      final String? idToken = googleUser.authentication.idToken;
+      if (idToken == null || idToken.isEmpty) {
         _errorMessage = 'فشل الحصول على بيانات Google';
         notifyListeners();
         return null;
       }
 
+      final authz = await googleUser.authorizationClient.authorizeScopes(const [
+        'email',
+        'profile',
+      ]);
+
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleAuth.accessToken,
-        idToken: googleAuth.idToken,
+        idToken: idToken,
+        accessToken: authz.accessToken,
       );
 
       final result = await _auth.signInWithCredential(credential);
       _user = result.user;
+      if (_user != null) {
+        await _ensureUserDocument(
+          uid: _user!.uid,
+          name: _user!.displayName ?? '',
+          email: _user!.email ?? '',
+          phone: _user!.phoneNumber ?? '',
+          profileImage: _user!.photoURL,
+        );
+      }
       notifyListeners();
       return _user;
     } on FirebaseAuthException catch (e) {
       _handleAuthError(e);
+      return null;
+    } on GoogleSignInException catch (e) {
+      _errorMessage = e.code == GoogleSignInExceptionCode.canceled
+          ? 'تم إلغاء تسجيل الدخول'
+          : 'خطأ في تسجيل الدخول عبر Google: ${e.description ?? e.code}';
+      notifyListeners();
       return null;
     } catch (e) {
       _errorMessage = 'خطأ في تسجيل الدخول عبر Google: ${e.toString()}';
@@ -178,5 +226,72 @@ class AuthService extends ChangeNotifier implements IAuthService {
         _errorMessage = e.message ?? 'حدث خطأ: ${e.code}';
     }
     notifyListeners();
+  }
+
+  Future<void> _ensureUserDocument({
+    required String uid,
+    required String name,
+    required String email,
+    required String phone,
+    required String? profileImage,
+  }) async {
+    if (uid.trim().isEmpty) return;
+
+    final users = FirebaseFirestore.instance.collection('users');
+    final ref = users.doc(uid);
+    final snap = await ref.get();
+
+    final Map<String, dynamic> updates = {};
+
+    if (!snap.exists || snap.data() == null) {
+      updates.addAll({
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'profileImage': profileImage,
+        'friends': <String>[],
+        'rating': 0.0,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+    } else {
+      final data = snap.data();
+      if (data is Map<String, dynamic>) {
+        // Migrate legacy schema: `friends` incorrectly stored as a map of profile fields.
+        final legacy = data['friends'];
+        if (legacy is Map) {
+          updates['legacyProfile'] = Map<String, dynamic>.from(legacy);
+          updates['friends'] = <String>[];
+        }
+
+        final existingName = data['name'];
+        if ((existingName is! String || existingName.trim().isEmpty) &&
+            name.trim().isNotEmpty) {
+          updates['name'] = name;
+        }
+
+        final existingEmail = data['email'];
+        if ((existingEmail is! String || existingEmail.trim().isEmpty) &&
+            email.trim().isNotEmpty) {
+          updates['email'] = email;
+        }
+
+        final existingPhone = data['phone'];
+        if ((existingPhone is! String || existingPhone.trim().isEmpty) &&
+            phone.trim().isNotEmpty) {
+          updates['phone'] = phone;
+        }
+
+        final existingProfileImage = data['profileImage'];
+        if ((existingProfileImage is! String ||
+                existingProfileImage.trim().isEmpty) &&
+            (profileImage ?? '').trim().isNotEmpty) {
+          updates['profileImage'] = profileImage;
+        }
+      }
+    }
+
+    updates['lastSeenAt'] = FieldValue.serverTimestamp();
+
+    await ref.set(updates, SetOptions(merge: true));
   }
 }

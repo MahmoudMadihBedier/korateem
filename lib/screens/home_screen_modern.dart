@@ -27,7 +27,7 @@ class _HomeScreenModernState extends State<HomeScreenModern> {
     final screens = [
       _buildModernHomeScreen(context, uid, userName, authService),
       FieldsScreen(),
-      TeamScreen(),
+      TeamScreen(currentUserId: uid),
       UserProfileScreen(uid: uid),
     ];
 
@@ -42,12 +42,15 @@ class _HomeScreenModernState extends State<HomeScreenModern> {
             padding: EdgeInsets.symmetric(horizontal: 16),
             child: Center(
               child: CircleAvatar(
-                backgroundImage: NetworkImage(
-                  authService.currentUser?.photoURL ??
-                      'https://via.placeholder.com/40',
-                ),
                 radius: 20,
                 backgroundColor: Color(0xFF43A047),
+                backgroundImage:
+                    (authService.currentUser?.photoURL?.isNotEmpty ?? false)
+                    ? NetworkImage(authService.currentUser!.photoURL!)
+                    : null,
+                child: (authService.currentUser?.photoURL?.isNotEmpty ?? false)
+                    ? null
+                    : const Icon(Icons.person, color: Colors.white),
               ),
             ),
           ),
