@@ -41,6 +41,9 @@ class OwnerService implements IOwnerService {
     String stadiumId,
     List<String> photoUrls,
   ) async {
+    if (stadiumId.trim().isEmpty) {
+      throw ArgumentError('stadiumId must not be empty');
+    }
     await stadiums.doc(stadiumId).update({'photos': photoUrls});
   }
 
@@ -49,6 +52,9 @@ class OwnerService implements IOwnerService {
     String stadiumId,
     String description,
   ) async {
+    if (stadiumId.trim().isEmpty) {
+      throw ArgumentError('stadiumId must not be empty');
+    }
     await stadiums.doc(stadiumId).update({'description': description});
   }
 
@@ -58,6 +64,9 @@ class OwnerService implements IOwnerService {
     List<Map<String, dynamic>> busyTimes,
     List<Map<String, dynamic>> freeTimes,
   ) async {
+    if (stadiumId.trim().isEmpty) {
+      throw ArgumentError('stadiumId must not be empty');
+    }
     await stadiums.doc(stadiumId).update({
       'busyTimes': busyTimes,
       'freeTimes': freeTimes,

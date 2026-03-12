@@ -4,8 +4,6 @@ import '../services/auth_service.dart';
 import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
-
   @override
   State<LoginScreen> createState() => _LoginScreenState();
 }
@@ -29,62 +27,73 @@ class _LoginScreenState extends State<LoginScreen> {
               Container(
                 height: isTablet ? 300 : 250,
                 width: double.infinity,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Color(0xFF0F4C75), // Egyptian dark blue (Al-Ahly)
-                      Color(0xFF1E88E5), // Modern blue
-                      Color(0xFF00D4FF), // Cyan accent
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                decoration: const BoxDecoration(
                   borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(40),
                     bottomRight: Radius.circular(40),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Color(0xFF0F4C75).withOpacity(0.3),
-                      blurRadius: 15,
-                      offset: Offset(0, 8),
-                    ),
-                  ],
                 ),
-                child: Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(40),
+                    bottomRight: Radius.circular(40),
+                  ),
+                  child: Stack(
+                    fit: StackFit.expand,
                     children: [
-                      // Soccer ball icon with animation feel
+                      Image.asset(
+                        'assets/images/studim.jpeg',
+                        fit: BoxFit.cover,
+                      ),
                       Container(
-                        padding: EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.white.withOpacity(0.15),
-                        ),
-                        child: Icon(
-                          Icons.sports_soccer,
-                          size: isTablet ? 100 : 70,
-                          color: Colors.white,
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'كورة تيم',
-                        style: TextStyle(
-                          fontSize: isTablet ? 56 : 44,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: 1.5,
+                          gradient: LinearGradient(
+                            colors: [ 
+                              Color.fromARGB(255, 67, 107, 69),
+                              Color.fromARGB(255, 17, 63, 19)
+                              ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ),
                         ),
                       ),
-                      SizedBox(height: 8),
-                      Text(
-                        '⚽ احجز ملعبك وشكل فريقك',
-                        style: TextStyle(
-                          fontSize: isTablet ? 18 : 14,
-                          color: Colors.white70,
-                          fontWeight: FontWeight.w500,
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Soccer ball icon with animation feel
+                            Container(
+                              padding: EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withOpacity(0.15),
+                              ),
+                              child: Icon(
+                                Icons.sports_soccer,
+                                size: isTablet ? 100 : 70,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              'كورة تيم',
+                              style: TextStyle(
+                                fontSize: isTablet ? 56 : 44,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              '⚽ احجز ملعبك وشكل فريقك',
+                              style: TextStyle(
+                                fontSize: isTablet ? 18 : 14,
+                                color: Colors.white70,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -105,7 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       style: TextStyle(
                         fontSize: isTablet ? 32 : 28,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF0F4C75),
+                        color: Color.fromARGB(255, 245, 246, 247),
                       ),
                     ),
                     SizedBox(height: 8),
@@ -260,8 +269,8 @@ class _LoginScreenState extends State<LoginScreen> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Color(0xFF0F4C75), // Egyptian blue
-            Color(0xFF1E88E5), // Modern blue
+            Color.fromARGB(255, 69, 94, 62), // Egyptian blue
+            Color.fromARGB(255, 9, 77, 14), // Modern blue
           ],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,

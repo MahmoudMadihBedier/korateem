@@ -17,6 +17,9 @@ class FieldService implements IFieldService {
 
   @override
   Future<DocumentSnapshot> getField(String fieldId) async {
+    if (fieldId.trim().isEmpty) {
+      throw ArgumentError('fieldId must not be empty');
+    }
     return await fields.doc(fieldId).get();
   }
 }

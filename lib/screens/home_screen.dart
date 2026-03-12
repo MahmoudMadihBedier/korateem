@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final screens = [
       _buildHomeScreen(),
       FieldsScreen(),
-      TeamScreen(),
+      TeamScreen(currentUserId: uid),
       UserProfileScreen(uid: uid),
     ];
 
@@ -38,11 +38,14 @@ class _HomeScreenState extends State<HomeScreen> {
             padding: EdgeInsets.all(8),
             child: Center(
               child: CircleAvatar(
-                backgroundImage: NetworkImage(
-                  authService.currentUser?.photoURL ??
-                      'https://via.placeholder.com/40',
-                ),
                 radius: 18,
+                backgroundImage:
+                    (authService.currentUser?.photoURL?.isNotEmpty ?? false)
+                    ? NetworkImage(authService.currentUser!.photoURL!)
+                    : null,
+                child: (authService.currentUser?.photoURL?.isNotEmpty ?? false)
+                    ? null
+                    : const Icon(Icons.person, color: Colors.white),
               ),
             ),
           ),
@@ -383,10 +386,13 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             accountEmail: Text(authService.currentUser?.email ?? ''),
             currentAccountPicture: CircleAvatar(
-              backgroundImage: NetworkImage(
-                authService.currentUser?.photoURL ??
-                    'https://via.placeholder.com/100',
-              ),
+              backgroundImage:
+                  (authService.currentUser?.photoURL?.isNotEmpty ?? false)
+                  ? NetworkImage(authService.currentUser!.photoURL!)
+                  : null,
+              child: (authService.currentUser?.photoURL?.isNotEmpty ?? false)
+                  ? null
+                  : const Icon(Icons.person, color: Colors.white),
             ),
             decoration: BoxDecoration(
               gradient: LinearGradient(

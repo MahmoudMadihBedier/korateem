@@ -48,53 +48,61 @@ class _SignupScreenState extends State<SignupScreen> {
             Container(
               height: isTablet ? 280 : 220,
               width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color(0xFF0F4C75),
-                    Color(0xFF1E88E5),
-                    Color(0xFF00D4FF),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.15),
-                      ),
-                      child: Icon(
-                        Icons.sports_soccer,
-                        size: isTablet ? 80 : 60,
-                        color: Colors.white,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset('assets/images/studim.jpeg', fit: BoxFit.cover),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.black.withOpacity(0.65),
+                          Colors.black.withOpacity(0.25),
+                          Colors.black.withOpacity(0.65),
+                        ],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
                       ),
                     ),
-                    SizedBox(height: 12),
-                    Text(
-                      'كورة تيم',
-                      style: TextStyle(
-                        fontSize: isTablet ? 40 : 32,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        letterSpacing: 1.2,
-                      ),
+                  ),
+                  Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(0.15),
+                          ),
+                          child: Icon(
+                            Icons.sports_soccer,
+                            size: isTablet ? 80 : 60,
+                            color: Colors.white,
+                          ),
+                        ),
+                        SizedBox(height: 12),
+                        Text(
+                          'كورة تيم',
+                          style: TextStyle(
+                            fontSize: isTablet ? 40 : 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Text(
+                          '⚽ انضم لمجتمع اللاعبين',
+                          style: TextStyle(
+                            fontSize: isTablet ? 16 : 12,
+                            color: Colors.white70,
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: 8),
-                    Text(
-                      '⚽ انضم لمجتمع اللاعبين',
-                      style: TextStyle(
-                        fontSize: isTablet ? 16 : 12,
-                        color: Colors.white70,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
             // Form
@@ -367,7 +375,7 @@ class _SignupScreenState extends State<SignupScreen> {
     }
 
     setState(() => _isLoading = true);
-    
+
     final authService = Provider.of<AuthService>(context, listen: false);
     final user = await authService.signUpWithEmail(
       emailController.text.trim(),

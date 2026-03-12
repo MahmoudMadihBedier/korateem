@@ -32,7 +32,20 @@ class TeamModel {
   });
 
   factory TeamModel.fromFirestore(DocumentSnapshot doc) {
-    Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+    final raw = doc.data();
+    if (raw is! Map<String, dynamic>) {
+      return TeamModel(
+        teamId: doc.id,
+        name: '',
+        captainId: '',
+        captainName: '',
+        memberIds: const [],
+        description: '',
+        imageUrl: '',
+        createdAt: DateTime.now(),
+      );
+    }
+    Map<String, dynamic> data = raw;
     return TeamModel(
       teamId: doc.id,
       name: data['name'] ?? '',

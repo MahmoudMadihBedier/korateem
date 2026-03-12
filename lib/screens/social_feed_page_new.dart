@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../ui/modern_components.dart';
-import '../../features/social/data/models/post_model.dart';
-import '../../features/social/data/repositories/post_repository.dart';
+import '../features/social/data/models/post_model.dart';
+import '../features/social/data/repositories/post_repository.dart';
 
 class SocialFeedPage extends StatefulWidget {
   final String userId;
@@ -121,6 +121,9 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF43A047),
+                      // Override theme's minSize (infinite width) since this button
+                      // lives in a Row inside a Dialog (unbounded width).
+                      minimumSize: const Size(120, 44),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 12,
@@ -219,6 +222,9 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF43A047),
+                      // Override theme's minSize (infinite width) since this button
+                      // lives in a Row inside a Dialog (unbounded width).
+                      minimumSize: const Size(120, 44),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 24,
                         vertical: 12,
@@ -292,141 +298,145 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
             itemCount: posts.length,
             itemBuilder: (context, index) {
               final post = posts[index];
-              return ModernCard(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Post Header
-                    Row(
-                      children: [
-                        CircleAvatar(
-                          radius: 24,
-                          backgroundColor: const Color(0xFF43A047),
-                          backgroundImage: post.imageUrl != null
-                              ? NetworkImage(post.imageUrl!)
-                              : null,
-                          child: post.imageUrl == null
-                              ? const Icon(Icons.person, color: Colors.white)
-                              : null,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'مستخدم ${post.userId.substring(0, 8)}',
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              Text(
-                                _formatTime(post.createdAt),
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: ModernCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Post Header
+                      Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 24,
+                            backgroundColor: const Color(0xFF43A047),
+                            backgroundImage: post.imageUrl != null
+                                ? NetworkImage(post.imageUrl!)
+                                : null,
+                            child: post.imageUrl == null
+                                ? const Icon(Icons.person, color: Colors.white)
+                                : null,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'مستخدم ${post.userId.substring(0, 8)}',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
+                                Text(
+                                  _formatTime(post.createdAt),
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // Post Content
+                      Text(
+                        post.content,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      if (post.imageUrl != null) ...[
+                        const SizedBox(height: 12),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            post.imageUrl!,
+                            height: 200,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                height: 200,
+                                color: const Color(0xFF2A2A2A),
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.broken_image,
+                                    color: Color(0xFF808080),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ],
-                    ),
-                    const SizedBox(height: 12),
-                    // Post Content
-                    Text(
-                      post.content,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    if (post.imageUrl != null) ...[
                       const SizedBox(height: 12),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.network(
-                          post.imageUrl!,
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 200,
-                              color: const Color(0xFF2A2A2A),
-                              child: const Center(
-                                child: Icon(
-                                  Icons.broken_image,
-                                  color: Color(0xFF808080),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-                    // Engagement Stats
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.favorite,
-                          size: 18,
-                          color: post.likes.contains(widget.userId)
-                              ? Colors.red
-                              : const Color(0xFF808080),
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          '${post.likes.length}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                        const SizedBox(width: 16),
-                        const Icon(
-                          Icons.comment_outlined,
-                          size: 18,
-                          color: Color(0xFF43A047),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${post.comments.length}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    const Divider(color: Color(0xFF404040), height: 1),
-                    const SizedBox(height: 12),
-                    // Action Buttons
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        Expanded(
-                          child: _buildActionButton(
-                            icon: post.likes.contains(widget.userId)
-                                ? Icons.favorite
-                                : Icons.favorite_border,
-                            label: 'إعجاب',
+                      // Engagement Stats
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.favorite,
+                            size: 18,
                             color: post.likes.contains(widget.userId)
                                 ? Colors.red
                                 : const Color(0xFF808080),
-                            onTap: () => _likePost(post.id, post.likes),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildActionButton(
-                            icon: Icons.comment_outlined,
-                            label: 'تعليق',
-                            color: const Color(0xFF43A047),
-                            onTap: () => _showCommentDialog(context, post.id),
+                          SizedBox(width: 4),
+                          Text(
+                            '${post.likes.length}',
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: _buildActionButton(
-                            icon: Icons.share_outlined,
-                            label: 'مشاركة',
-                            color: const Color(0xFF66BB6A),
-                            onTap: () {},
+                          const SizedBox(width: 16),
+                          const Icon(
+                            Icons.comment_outlined,
+                            size: 18,
+                            color: Color(0xFF43A047),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                          const SizedBox(width: 4),
+                          Text(
+                            '${post.comments.length}',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      const Divider(color: Color(0xFF404040), height: 1),
+                      const SizedBox(height: 12),
+                      // Action Buttons
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            child: _buildActionButton(
+                              icon: post.likes.contains(widget.userId)
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              label: 'إعجاب',
+                              color: post.likes.contains(widget.userId)
+                                  ? Colors.red
+                                  : const Color(0xFF808080),
+                              onTap: () => _likePost(post.id, post.likes),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildActionButton(
+                              icon: Icons.comment_outlined,
+                              label: 'تعليق',
+                              color: const Color(0xFF43A047),
+                              onTap: () => _showCommentDialog(context, post.id),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _buildActionButton(
+                              icon: Icons.share_outlined,
+                              label: 'مشاركة',
+                              color: const Color(0xFF66BB6A),
+                              onTap: () {},
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -465,17 +475,4 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
       ),
     );
   }
-}
-
-// Assuming CommentModel exists in your project
-class CommentModel {
-  final String userId;
-  final String text;
-  final DateTime createdAt;
-
-  CommentModel({
-    required this.userId,
-    required this.text,
-    required this.createdAt,
-  });
 }
