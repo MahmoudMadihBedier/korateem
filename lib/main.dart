@@ -7,6 +7,13 @@ import 'package:korateem/services/auth_service.dart';
 import 'package:provider/provider.dart';
 import 'package:korateem/ui/theme.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+// Feature screen imports
+import 'screens/user_profile_edit_page.dart';
+import 'screens/user_search_friends_page.dart';
+import 'screens/user_rating_page.dart';
+import 'screens/social_feed_page.dart';
+import 'screens/stadium_profile_page.dart';
+import 'screens/stadium_dashboard_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,15 +43,64 @@ class MyApp extends StatelessWidget {
         stream: authService.userChanges,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Scaffold(body: Center(child: CircularProgressIndicator()));
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
           }
           if (snapshot.hasData) {
-            return HomeScreen();
+            return const HomeScreen();
           } else {
-            return LoginScreen();
+            return const LoginScreen();
           }
         },
       ),
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/user-profile-edit':
+            final userId =
+                (settings.arguments as Map<String, dynamic>?)?['userId'] ?? '';
+            return MaterialPageRoute(
+              builder: (_) => UserProfileEditPage(userId: userId),
+            );
+          case '/search-friends':
+            final currentUserId =
+                (settings.arguments
+                    as Map<String, dynamic>?)?['currentUserId'] ??
+                '';
+            return MaterialPageRoute(
+              builder: (_) =>
+                  UserSearchFriendsPage(currentUserId: currentUserId),
+            );
+          case '/rate-user':
+            final args = settings.arguments as Map<String, dynamic>?;
+            final userId = args?['userId'] ?? '';
+            final userName = args?['userName'] ?? '';
+            return MaterialPageRoute(
+              builder: (_) =>
+                  UserRatingPage(userId: userId, userName: userName),
+            );
+          case '/social-feed':
+            final userId =
+                (settings.arguments as Map<String, dynamic>?)?['userId'] ?? '';
+            return MaterialPageRoute(
+              builder: (_) => SocialFeedPage(userId: userId),
+            );
+          case '/stadium-profile':
+            final ownerId =
+                (settings.arguments as Map<String, dynamic>?)?['ownerId'] ?? '';
+            return MaterialPageRoute(
+              builder: (_) => StadiumProfilePage(ownerId: ownerId),
+            );
+          case '/stadium-dashboard':
+            final ownerId =
+                (settings.arguments as Map<String, dynamic>?)?['ownerId'] ?? '';
+            return MaterialPageRoute(
+              builder: (_) => StadiumDashboardPage(ownerId: ownerId),
+            );
+          default:
+            return null;
+        }
+      },
     );
   }
 }
