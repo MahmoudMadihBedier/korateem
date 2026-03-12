@@ -5,7 +5,7 @@ final ThemeData korateemTheme = ThemeData(
   fontFamily: 'Cairo',
   brightness: Brightness.dark,
   useMaterial3: true,
-  
+
   // Color scheme - Modern dark with vibrant green
   colorScheme: ColorScheme.dark(
     primary: Color(0xFF43A047), // Vibrant green
@@ -19,10 +19,10 @@ final ThemeData korateemTheme = ThemeData(
     onBackground: Colors.white,
     onSurface: Colors.white,
   ),
-  
+
   // Scaffold background - Deep dark
   scaffoldBackgroundColor: Color(0xFF121212),
-  
+
   // Text theme with Egyptian Arabic styling
   textTheme: TextTheme(
     displayLarge: const TextStyle(
@@ -87,7 +87,7 @@ final ThemeData korateemTheme = ThemeData(
       fontFamily: 'Cairo',
     ),
   ),
-  
+
   // AppBar theme - Dark with green accent
   appBarTheme: AppBarTheme(
     backgroundColor: Color(0xFF1E1E1E),
@@ -102,18 +102,16 @@ final ThemeData korateemTheme = ThemeData(
     ),
     centerTitle: true,
   ),
-  
+
   // Card theme - Elevated with dark background
   cardTheme: CardThemeData(
     color: Color(0xFF2A2A2A),
     surfaceTintColor: Color(0xFF2A2A2A),
     elevation: 4,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     margin: EdgeInsets.zero,
   ),
-  
+
   // Input decoration theme
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
@@ -135,25 +133,17 @@ final ThemeData korateemTheme = ThemeData(
       borderRadius: BorderRadius.circular(12),
       borderSide: BorderSide(color: Color(0xFFCF6679)),
     ),
-    labelStyle: TextStyle(
-      color: Color(0xFFB0B0B0),
-      fontFamily: 'Cairo',
-    ),
-    hintStyle: TextStyle(
-      color: Color(0xFF808080),
-      fontFamily: 'Cairo',
-    ),
+    labelStyle: TextStyle(color: Color(0xFFB0B0B0), fontFamily: 'Cairo'),
+    hintStyle: TextStyle(color: Color(0xFF808080), fontFamily: 'Cairo'),
   ),
-  
+
   // Button themes - Vibrant green
   elevatedButtonTheme: ElevatedButtonThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor: Color(0xFF43A047),
       foregroundColor: Colors.white,
       minimumSize: Size(double.infinity, 50),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       textStyle: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,
@@ -162,15 +152,13 @@ final ThemeData korateemTheme = ThemeData(
       elevation: 4,
     ),
   ),
-  
+
   outlinedButtonTheme: OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
       foregroundColor: Color(0xFF43A047),
       side: BorderSide(color: Color(0xFF43A047), width: 2),
       minimumSize: Size(double.infinity, 50),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       textStyle: const TextStyle(
         fontSize: 16,
         fontWeight: FontWeight.w600,
@@ -178,7 +166,7 @@ final ThemeData korateemTheme = ThemeData(
       ),
     ),
   ),
-  
+
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
       foregroundColor: Color(0xFF43A047),
@@ -189,7 +177,7 @@ final ThemeData korateemTheme = ThemeData(
       ),
     ),
   ),
-  
+
   // FloatingActionButton theme
   floatingActionButtonTheme: FloatingActionButtonThemeData(
     backgroundColor: Color(0xFF43A047),
@@ -197,7 +185,7 @@ final ThemeData korateemTheme = ThemeData(
     elevation: 8,
     shape: CircleBorder(),
   ),
-  
+
   // Bottom navigation bar theme
   bottomNavigationBarTheme: BottomNavigationBarThemeData(
     backgroundColor: Color(0xFF1E1E1E),
@@ -208,44 +196,30 @@ final ThemeData korateemTheme = ThemeData(
     showSelectedLabels: true,
     showUnselectedLabels: true,
   ),
-  
+
   // Chip theme
   chipTheme: ChipThemeData(
     backgroundColor: Color(0xFF2A2A2A),
     selectedColor: Color(0xFF43A047),
     side: BorderSide(color: Color(0xFF404040)),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(20),
-    ),
-    labelStyle: TextStyle(
-      color: Colors.white,
-      fontFamily: 'Cairo',
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    labelStyle: TextStyle(color: Colors.white, fontFamily: 'Cairo'),
   ),
-  
+
   // Dialog theme
   dialogTheme: DialogThemeData(
     backgroundColor: Color(0xFF2A2A2A),
     elevation: 12,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(16),
-    ),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
   ),
-  
+
   // SnackBar theme
   snackBarTheme: SnackBarThemeData(
     backgroundColor: Color(0xFF2A2A2A),
-    contentTextStyle: TextStyle(
-      color: Colors.white,
-      fontFamily: 'Cairo',
-    ),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8),
-    ),
+    contentTextStyle: TextStyle(color: Colors.white, fontFamily: 'Cairo'),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
   ),
-  
+
   // Progress indicator theme
-  progressIndicatorTheme: ProgressIndicatorThemeData(
-    color: Color(0xFF43A047),
-  ),
+  progressIndicatorTheme: ProgressIndicatorThemeData(color: Color(0xFF43A047)),
 );

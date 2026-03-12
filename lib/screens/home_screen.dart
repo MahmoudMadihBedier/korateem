@@ -171,7 +171,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   subtitle: 'ابحث عن لاعبين آخرين',
                   color: Color(0xFF8E24AA),
                   onTap: () {
-                    final userId = Provider.of<AuthService>(context, listen: false).currentUser?.uid ?? '';
+                    final userId =
+                        Provider.of<AuthService>(
+                          context,
+                          listen: false,
+                        ).currentUser?.uid ??
+                        '';
                     Navigator.pushNamed(
                       context,
                       '/search-friends',
@@ -200,7 +205,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   subtitle: 'شارك وتفاعل مع المنشورات',
                   color: Color(0xFF0097A7),
                   onTap: () {
-                    final userId = Provider.of<AuthService>(context, listen: false).currentUser?.uid ?? '';
+                    final userId =
+                        Provider.of<AuthService>(
+                          context,
+                          listen: false,
+                        ).currentUser?.uid ??
+                        '';
                     Navigator.pushNamed(
                       context,
                       '/social-feed',
@@ -215,7 +225,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   subtitle: 'حدّث بيانات ملفك الشخصي',
                   color: Color(0xFF5E35B1),
                   onTap: () {
-                    final userId = Provider.of<AuthService>(context, listen: false).currentUser?.uid ?? '';
+                    final userId =
+                        Provider.of<AuthService>(
+                          context,
+                          listen: false,
+                        ).currentUser?.uid ??
+                        '';
                     Navigator.pushNamed(
                       context,
                       '/user-profile-edit',
@@ -230,7 +245,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   subtitle: 'أضف ملعبك إلى القائمة',
                   color: Color(0xFF00695C),
                   onTap: () {
-                    final userId = Provider.of<AuthService>(context, listen: false).currentUser?.uid ?? '';
+                    final userId =
+                        Provider.of<AuthService>(
+                          context,
+                          listen: false,
+                        ).currentUser?.uid ??
+                        '';
                     Navigator.pushNamed(
                       context,
                       '/stadium-profile',
@@ -245,7 +265,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   subtitle: 'إدارة ملاعبك والحجوزات',
                   color: Color(0xFF455A64),
                   onTap: () {
-                    final userId = Provider.of<AuthService>(context, listen: false).currentUser?.uid ?? '';
+                    final userId =
+                        Provider.of<AuthService>(
+                          context,
+                          listen: false,
+                        ).currentUser?.uid ??
+                        '';
                     Navigator.pushNamed(
                       context,
                       '/stadium-dashboard',

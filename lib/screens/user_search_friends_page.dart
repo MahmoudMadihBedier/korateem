@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../ui/modern_components.dart';
 import '../../features/user/data/models/user_model.dart';
 import '../../features/user/data/repositories/user_repository.dart';
 
@@ -42,14 +43,19 @@ class _UserSearchFriendsPageState extends State<UserSearchFriendsPage> {
         });
       });
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Search error: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Search error: $e'),
+            backgroundColor: const Color(0xFFCF6679),
+          ),
+        );
+      }
       setState(() => _isSearching = false);
     }
   }
 
-  Future<void> _addFriend(String friendId) async {
+  Future<void> _addFriend(String friendId, UserModel friend) async {
     try {
       final currentUser = await _userRepository.getUser(widget.currentUserId);
       final updatedFriends = List<String>.from(currentUser.friends);
@@ -66,24 +72,36 @@ class _UserSearchFriendsPageState extends State<UserSearchFriendsPage> {
             rating: currentUser.rating,
           ),
         );
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Friend added successfully')),
-        );
+        if (mounted) {
+          // Update UI to show friend is added
+          setState(() {
+            _searchResults.removeWhere((u) => u.id == friendId);
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${friend.name} added as friend!'),
+              backgroundColor: const Color(0xFF43A047),
+            ),
+          );
+        }
       }
     } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error adding friend: $e')));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error adding friend: $e'),
+            backgroundColor: const Color(0xFFCF6679),
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Search & Add Friends'),
-        backgroundColor: Colors.green[700],
-      ),
+      backgroundColor: const Color(0xFF121212),
+      appBar: ModernAppBar(title: 'Find Friends'),
       body: Column(
         children: [
           // Search Field
@@ -92,11 +110,27 @@ class _UserSearchFriendsPageState extends State<UserSearchFriendsPage> {
             child: TextField(
               controller: _searchController,
               onChanged: _searchUsers,
+              style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
-                hintText: 'Search users...',
-                prefixIcon: const Icon(Icons.search),
+                hintText: 'Search for friends...',
+                hintStyle: const TextStyle(color: Color(0xFF808080)),
+                prefixIcon: const Icon(Icons.search, color: Color(0xFF43A047)),
+                filled: true,
+                fillColor: const Color(0xFF1E1E1E),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF404040)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: Color(0xFF404040)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF43A047),
+                    width: 2,
+                  ),
                 ),
               ),
             ),
@@ -104,53 +138,98 @@ class _UserSearchFriendsPageState extends State<UserSearchFriendsPage> {
           // Search Results
           Expanded(
             child: _isSearching
-                ? const Center(child: CircularProgressIndicator())
+                ? ModernLoading()
                 : _searchResults.isEmpty
-                ? Center(
-                    child: Text(
-                      _searchController.text.isEmpty
-                          ? 'Start searching for friends'
-                          : 'No users found',
-                    ),
+                ? EmptyState(
+                    icon: _searchController.text.isEmpty
+                        ? Icons.search
+                        : Icons.person_off,
+                    title: _searchController.text.isEmpty
+                        ? 'Find Friends'
+                        : 'No Users Found',
+                    subtitle: _searchController.text.isEmpty
+                        ? 'Search for friends to add'
+                        : 'Try searching with different keywords',
                   )
                 : ListView.builder(
+                    padding: const EdgeInsets.all(12),
                     itemCount: _searchResults.length,
                     itemBuilder: (context, index) {
                       final user = _searchResults[index];
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundImage: user.profileImage != null
-                              ? NetworkImage(user.profileImage!)
-                              : null,
-                          child: user.profileImage == null
-                              ? const Icon(Icons.person)
-                              : null,
-                        ),
-                        title: Text(user.name),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(user.email),
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.star,
-                                  size: 16,
-                                  color: Colors.amber,
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: ModernCard(
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 28,
+                                backgroundColor: const Color(0xFF43A047),
+                                backgroundImage: user.profileImage != null
+                                    ? NetworkImage(user.profileImage!)
+                                    : null,
+                                child: user.profileImage == null
+                                    ? const Icon(
+                                        Icons.person,
+                                        color: Colors.white,
+                                      )
+                                    : null,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      user.name,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
+                                    ),
+                                    Text(
+                                      user.email,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.star,
+                                          size: 14,
+                                          color: Color(0xFFFF9800),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          user.rating.toStringAsFixed(1),
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
-                                Text(' ${user.rating.toStringAsFixed(1)}'),
-                              ],
-                            ),
-                          ],
-                        ),
-                        trailing: ElevatedButton(
-                          onPressed: () => _addFriend(user.id),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green[700],
-                          ),
-                          child: const Text(
-                            'Add',
-                            style: TextStyle(color: Colors.white),
+                              ),
+                              const SizedBox(width: 8),
+                              ElevatedButton(
+                                onPressed: () => _addFriend(user.id, user),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF43A047),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 10,
+                                  ),
+                                ),
+                                child: const Text(
+                                  'Add',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       );

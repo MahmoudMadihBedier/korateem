@@ -43,7 +43,9 @@ class MyApp extends StatelessWidget {
         stream: authService.userChanges,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
           }
           if (snapshot.hasData) {
             return const HomeScreen();
@@ -55,25 +57,46 @@ class MyApp extends StatelessWidget {
       onGenerateRoute: (settings) {
         switch (settings.name) {
           case '/user-profile-edit':
-            final userId = (settings.arguments as Map<String, dynamic>?)?['userId'] ?? '';
-            return MaterialPageRoute(builder: (_) => UserProfileEditPage(userId: userId));
+            final userId =
+                (settings.arguments as Map<String, dynamic>?)?['userId'] ?? '';
+            return MaterialPageRoute(
+              builder: (_) => UserProfileEditPage(userId: userId),
+            );
           case '/search-friends':
-            final currentUserId = (settings.arguments as Map<String, dynamic>?)?['currentUserId'] ?? '';
-            return MaterialPageRoute(builder: (_) => UserSearchFriendsPage(currentUserId: currentUserId));
+            final currentUserId =
+                (settings.arguments
+                    as Map<String, dynamic>?)?['currentUserId'] ??
+                '';
+            return MaterialPageRoute(
+              builder: (_) =>
+                  UserSearchFriendsPage(currentUserId: currentUserId),
+            );
           case '/rate-user':
             final args = settings.arguments as Map<String, dynamic>?;
             final userId = args?['userId'] ?? '';
             final userName = args?['userName'] ?? '';
-            return MaterialPageRoute(builder: (_) => UserRatingPage(userId: userId, userName: userName));
+            return MaterialPageRoute(
+              builder: (_) =>
+                  UserRatingPage(userId: userId, userName: userName),
+            );
           case '/social-feed':
-            final userId = (settings.arguments as Map<String, dynamic>?)?['userId'] ?? '';
-            return MaterialPageRoute(builder: (_) => SocialFeedPage(userId: userId));
+            final userId =
+                (settings.arguments as Map<String, dynamic>?)?['userId'] ?? '';
+            return MaterialPageRoute(
+              builder: (_) => SocialFeedPage(userId: userId),
+            );
           case '/stadium-profile':
-            final ownerId = (settings.arguments as Map<String, dynamic>?)?['ownerId'] ?? '';
-            return MaterialPageRoute(builder: (_) => StadiumProfilePage(ownerId: ownerId));
+            final ownerId =
+                (settings.arguments as Map<String, dynamic>?)?['ownerId'] ?? '';
+            return MaterialPageRoute(
+              builder: (_) => StadiumProfilePage(ownerId: ownerId),
+            );
           case '/stadium-dashboard':
-            final ownerId = (settings.arguments as Map<String, dynamic>?)?['ownerId'] ?? '';
-            return MaterialPageRoute(builder: (_) => StadiumDashboardPage(ownerId: ownerId));
+            final ownerId =
+                (settings.arguments as Map<String, dynamic>?)?['ownerId'] ?? '';
+            return MaterialPageRoute(
+              builder: (_) => StadiumDashboardPage(ownerId: ownerId),
+            );
           default:
             return null;
         }

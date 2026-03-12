@@ -33,7 +33,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: $e'),
+            content: Text('خطأ: $e'),
             backgroundColor: const Color(0xFFCF6679),
           ),
         );
@@ -55,16 +55,17 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Create New Post',
+                'إنشاء منشور جديد',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: controller,
                 maxLines: 4,
+                textDirection: TextDirection.rtl,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  hintText: 'What is on your mind?',
+                  hintText: 'ماذا في بالك؟',
                   hintStyle: const TextStyle(color: Color(0xFF808080)),
                   filled: true,
                   fillColor: const Color(0xFF1E1E1E),
@@ -92,7 +93,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: const Text(
-                      'Cancel',
+                      'إلغاء',
                       style: TextStyle(color: Color(0xFF808080)),
                     ),
                   ),
@@ -111,7 +112,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Post created successfully!'),
+                              content: Text('تم إنشاء المنشور بنجاح!'),
                               backgroundColor: Color(0xFF43A047),
                             ),
                           );
@@ -126,7 +127,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                       ),
                     ),
                     child: const Text(
-                      'Post',
+                      'نشر',
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
@@ -153,16 +154,17 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Add Comment',
+                'إضافة تعليق',
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
               TextField(
                 controller: controller,
                 maxLines: 3,
+                textDirection: TextDirection.rtl,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  hintText: 'Write your comment...',
+                  hintText: 'اكتب تعليقك...',
                   hintStyle: const TextStyle(color: Color(0xFF808080)),
                   filled: true,
                   fillColor: const Color(0xFF1E1E1E),
@@ -190,7 +192,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                   TextButton(
                     onPressed: () => Navigator.pop(context),
                     child: const Text(
-                      'Cancel',
+                      'إلغاء',
                       style: TextStyle(color: Color(0xFF808080)),
                     ),
                   ),
@@ -208,7 +210,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Comment added!'),
+                              content: Text('تم إضافة التعليق!'),
                               backgroundColor: Color(0xFF43A047),
                             ),
                           );
@@ -223,7 +225,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                       ),
                     ),
                     child: const Text(
-                      'Add',
+                      'إضافة',
                       style: TextStyle(color: Colors.white),
                     ),
                   ),
@@ -241,13 +243,13 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
     final difference = now.difference(dateTime);
 
     if (difference.inMinutes < 1) {
-      return 'Now';
+      return 'الآن';
     } else if (difference.inHours < 1) {
-      return '${difference.inMinutes}m ago';
+      return 'منذ ${difference.inMinutes} دقيقة';
     } else if (difference.inDays < 1) {
-      return '${difference.inHours}h ago';
+      return 'منذ ${difference.inHours} ساعة';
     } else {
-      return '${difference.inDays}d ago';
+      return 'منذ ${difference.inDays} يوم';
     }
   }
 
@@ -255,7 +257,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
-      appBar: ModernAppBar(title: 'Social Feed'),
+      appBar: ModernAppBar(title: 'الفيد الاجتماعي'),
       body: StreamBuilder<List<PostModel>>(
         stream: _postRepository.getAllPosts(),
         builder: (context, snapshot) {
@@ -266,9 +268,9 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
           if (snapshot.hasError) {
             return EmptyState(
               icon: Icons.error_outline,
-              title: 'Error Loading Posts',
-              subtitle: 'An error occurred while loading posts',
-              actionLabel: 'Retry',
+              title: 'خطأ في التحميل',
+              subtitle: 'حدث خطأ أثناء تحميل المنشورات',
+              actionLabel: 'إعادة محاولة',
               onAction: () => setState(() {}),
             );
           }
@@ -276,9 +278,9 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return EmptyState(
               icon: Icons.inbox_outlined,
-              title: 'No Posts Yet',
-              subtitle: 'Be the first to post!',
-              actionLabel: 'Create Post',
+              title: 'لا توجد منشورات',
+              subtitle: 'كن أول من ينشر!',
+              actionLabel: 'إنشاء منشور',
               onAction: () => _showCreatePostDialog(context),
             );
           }
@@ -290,145 +292,141 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
             itemCount: posts.length,
             itemBuilder: (context, index) {
               final post = posts[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: ModernCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Post Header
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 24,
-                            backgroundColor: const Color(0xFF43A047),
-                            backgroundImage: post.imageUrl != null
-                                ? NetworkImage(post.imageUrl!)
-                                : null,
-                            child: post.imageUrl == null
-                                ? const Icon(Icons.person, color: Colors.white)
-                                : null,
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'User ${post.userId.substring(0, 8)}',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
-                                ),
-                                Text(
-                                  _formatTime(post.createdAt),
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      // Post Content
-                      Text(
-                        post.content,
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                      if (post.imageUrl != null) ...[
-                        const SizedBox(height: 12),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            post.imageUrl!,
-                            height: 200,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Container(
-                                height: 200,
-                                color: const Color(0xFF2A2A2A),
-                                child: const Center(
-                                  child: Icon(
-                                    Icons.broken_image,
-                                    color: Color(0xFF808080),
-                                  ),
-                                ),
-                              );
-                            },
+              return ModernCard(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Post Header
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 24,
+                          backgroundColor: const Color(0xFF43A047),
+                          backgroundImage: post.imageUrl != null
+                              ? NetworkImage(post.imageUrl!)
+                              : null,
+                          child: post.imageUrl == null
+                              ? const Icon(Icons.person, color: Colors.white)
+                              : null,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'مستخدم ${post.userId.substring(0, 8)}',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              Text(
+                                _formatTime(post.createdAt),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
                           ),
                         ),
                       ],
+                    ),
+                    const SizedBox(height: 12),
+                    // Post Content
+                    Text(
+                      post.content,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    if (post.imageUrl != null) ...[
                       const SizedBox(height: 12),
-                      // Engagement Stats
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.favorite,
-                            size: 18,
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.network(
+                          post.imageUrl!,
+                          height: 200,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 200,
+                              color: const Color(0xFF2A2A2A),
+                              child: const Center(
+                                child: Icon(
+                                  Icons.broken_image,
+                                  color: Color(0xFF808080),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    // Engagement Stats
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.favorite,
+                          size: 18,
+                          color: post.likes.contains(widget.userId)
+                              ? Colors.red
+                              : const Color(0xFF808080),
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          '${post.likes.length}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(width: 16),
+                        const Icon(
+                          Icons.comment_outlined,
+                          size: 18,
+                          color: Color(0xFF43A047),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '${post.comments.length}',
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    const Divider(color: Color(0xFF404040), height: 1),
+                    const SizedBox(height: 12),
+                    // Action Buttons
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Expanded(
+                          child: _buildActionButton(
+                            icon: post.likes.contains(widget.userId)
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                            label: 'إعجاب',
                             color: post.likes.contains(widget.userId)
                                 ? Colors.red
                                 : const Color(0xFF808080),
+                            onTap: () => _likePost(post.id, post.likes),
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${post.likes.length}',
-                            style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildActionButton(
+                            icon: Icons.comment_outlined,
+                            label: 'تعليق',
+                            color: const Color(0xFF43A047),
+                            onTap: () => _showCommentDialog(context, post.id),
                           ),
-                          const SizedBox(width: 16),
-                          const Icon(
-                            Icons.comment_outlined,
-                            size: 18,
-                            color: Color(0xFF43A047),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: _buildActionButton(
+                            icon: Icons.share_outlined,
+                            label: 'مشاركة',
+                            color: const Color(0xFF66BB6A),
+                            onTap: () {},
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${post.comments.length}',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      const Divider(color: Color(0xFF404040), height: 1),
-                      const SizedBox(height: 12),
-                      // Action Buttons
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Expanded(
-                            child: _buildActionButton(
-                              icon: post.likes.contains(widget.userId)
-                                  ? Icons.favorite
-                                  : Icons.favorite_border,
-                              label: 'Like',
-                              color: post.likes.contains(widget.userId)
-                                  ? Colors.red
-                                  : const Color(0xFF808080),
-                              onTap: () => _likePost(post.id, post.likes),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: _buildActionButton(
-                              icon: Icons.comment_outlined,
-                              label: 'Comment',
-                              color: const Color(0xFF43A047),
-                              onTap: () => _showCommentDialog(context, post.id),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: _buildActionButton(
-                              icon: Icons.share_outlined,
-                              label: 'Share',
-                              color: const Color(0xFF66BB6A),
-                              onTap: () {},
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               );
             },
@@ -467,4 +465,17 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
       ),
     );
   }
+}
+
+// Assuming CommentModel exists in your project
+class CommentModel {
+  final String userId;
+  final String text;
+  final DateTime createdAt;
+
+  CommentModel({
+    required this.userId,
+    required this.text,
+    required this.createdAt,
+  });
 }
