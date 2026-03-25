@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/foundation.dart';
 import 'dart:io';
+import 'dart:convert';
 
 import '../models/team_model.dart';
 
@@ -22,58 +20,6 @@ class TeamService implements ITeamService {
   final CollectionReference teams = FirebaseFirestore.instance.collection(
     'teams',
   );
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-
-  bool _looksLikeNotFound(FirebaseException e) {
-    final msg = (e.message ?? '').toLowerCase();
-    return e.code == 'object-not-found' ||
-        msg.contains('404') ||
-        msg.contains('not found') ||
-        msg.contains('does not exist');
-  }
-
-  String? _swapBucketSuffix(String bucket) {
-    if (bucket.endsWith('.firebasestorage.app')) {
-      return bucket.replaceFirst('.firebasestorage.app', '.appspot.com');
-    }
-    if (bucket.endsWith('.appspot.com')) {
-      return bucket.replaceFirst('.appspot.com', '.firebasestorage.app');
-    }
-    return null;
-  }
-
-  List<FirebaseStorage> _candidateStorages() {
-    final storages = <FirebaseStorage>[_storage];
-    final app = Firebase.app();
-    final bucket = app.options.storageBucket?.trim();
-    final projectId = app.options.projectId.trim();
-
-    final bucketNames = <String>{};
-
-    void addBucketName(String? b) {
-      final v = (b ?? '').trim();
-      if (v.isEmpty) return;
-      bucketNames.add(v);
-    }
-
-    // From FlutterFire config.
-    addBucketName(bucket);
-    addBucketName(_swapBucketSuffix(bucket ?? ''));
-
-    // Derived from projectId (covers many Firebase projects).
-    if (projectId.isNotEmpty) {
-      addBucketName('$projectId.appspot.com');
-      addBucketName('$projectId.firebasestorage.app');
-    }
-
-    for (final b in bucketNames) {
-      storages.add(FirebaseStorage.instanceFor(app: app, bucket: 'gs://$b'));
-    }
-
-    // De-dup by bucket name.
-    final seen = <String>{};
-    return storages.where((s) => seen.add(s.bucket)).toList();
-  }
 
   @override
   Future<String> createTeam({
@@ -98,50 +44,16 @@ class TeamService implements ITeamService {
     }
 
     final docRef = teams.doc();
-    String imageUrl = '';
-
+    String imageData = '';
     if (imageFile != null) {
-      FirebaseException? lastFirebaseError;
-      Object? lastError;
-
-      for (final storage in _candidateStorages()) {
-        final ref = storage.ref().child('teams/${docRef.id}.jpg');
-        try {
-          if (kDebugMode) {
-            debugPrint('Team image upload -> bucket=${storage.bucket} path=${ref.fullPath}');
-          }
-          final snap = await ref.putFile(
-            imageFile,
-            SettableMetadata(contentType: 'image/jpeg'),
-          );
-          imageUrl = await snap.ref.getDownloadURL();
-          lastFirebaseError = null;
-          lastError = null;
-          break;
-        } on FirebaseException catch (e) {
-          if (kDebugMode) {
-            debugPrint(
-              'Team image upload failed -> bucket=${storage.bucket} code=${e.code} message=${e.message}',
-            );
-          }
-          lastFirebaseError = e;
-          lastError = e;
-          // If bucket is wrong/not enabled, some setups return 404. Try alternate bucket.
-          if (_looksLikeNotFound(e)) {
-            continue;
-          }
-          rethrow;
-        } catch (e) {
-          lastError = e;
-          rethrow;
-        }
+      final bytes = await imageFile.readAsBytes();
+      // Firestore document limit is ~1MB; keep a safe margin.
+      if (bytes.lengthInBytes > 900 * 1024) {
+        throw Exception(
+          'حجم الصورة كبير جداً. اختار صورة أصغر (يفضل أقل من 900KB).',
+        );
       }
-
-      if (imageUrl.trim().isEmpty) {
-        // If we couldn't upload to any candidate bucket, surface the most helpful error.
-        if (lastFirebaseError != null) throw lastFirebaseError;
-        throw Exception(lastError ?? 'Failed to upload team image');
-      }
+      imageData = base64Encode(bytes);
     }
 
     final team = TeamModel(
@@ -151,7 +63,8 @@ class TeamService implements ITeamService {
       captainName: captainName.trim(),
       memberIds: memberIds,
       description: '',
-      imageUrl: imageUrl,
+      imageUrl: '',
+      imageData: imageData,
       createdAt: DateTime.now(),
     );
 

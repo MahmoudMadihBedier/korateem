@@ -86,7 +86,9 @@ class _CreateTeamPageState extends State<CreateTeamPage>
     try {
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
-        imageQuality: 80,
+        imageQuality: 70,
+        maxWidth: 720,
+        maxHeight: 720,
       );
       if (image == null) return;
       if (!mounted) return;
@@ -205,12 +207,6 @@ class _CreateTeamPageState extends State<CreateTeamPage>
               msg.contains('cloud_firestore/permission-denied') ||
                       msg.contains('PERMISSION_DENIED')
                   ? 'لا يمكن إنشاء الفريق بسبب صلاحيات Firebase. انشر قواعد Firestore من ملف `FIREBASE_DEPLOY_RULES.md`.'
-                  : msg.contains('firebase_storage') ||
-                        msg.contains('StorageException') ||
-                        msg.contains('object-not-found') ||
-                        msg.contains('404') ||
-                        msg.toLowerCase().contains('not found')
-                  ? 'تعذر رفع صورة الفريق. غالباً Firebase Storage غير مفعّل أو اسم الـ bucket غير صحيح. افتح Firebase Console > Storage > Get started ثم انشر قواعد Storage من `FIREBASE_DEPLOY_RULES.md` وحاول مرة أخرى.'
                   : 'خطأ: $e',
             ),
             backgroundColor: const Color(0xFFCF6679),

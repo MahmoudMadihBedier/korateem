@@ -8,6 +8,7 @@ class TeamModel {
   final List<String> memberIds;
   final String description;
   final String imageUrl;
+  final String imageData; // base64 (jpeg) for Firestore-only mode
   final double rating;
   final int totalMatches;
   final int wins;
@@ -23,6 +24,7 @@ class TeamModel {
     this.memberIds = const [],
     required this.description,
     required this.imageUrl,
+    this.imageData = '',
     this.rating = 0.0,
     this.totalMatches = 0,
     this.wins = 0,
@@ -54,6 +56,7 @@ class TeamModel {
       memberIds: List<String>.from(data['memberIds'] ?? []),
       description: data['description'] ?? '',
       imageUrl: data['imageUrl'] ?? '',
+      imageData: data['imageData'] ?? '',
       rating: (data['rating'] ?? 0).toDouble(),
       totalMatches: data['totalMatches'] ?? 0,
       wins: data['wins'] ?? 0,
@@ -71,6 +74,7 @@ class TeamModel {
       'memberIds': memberIds,
       'description': description,
       'imageUrl': imageUrl,
+      'imageData': imageData,
       'rating': rating,
       'totalMatches': totalMatches,
       'wins': wins,
