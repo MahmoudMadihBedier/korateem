@@ -142,7 +142,7 @@ final ThemeData korateemTheme = ThemeData(
     style: ElevatedButton.styleFrom(
       backgroundColor: Color(0xFF43A047),
       foregroundColor: Colors.white,
-      minimumSize: Size(double.infinity, 50),
+      minimumSize: Size.fromHeight(50),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       textStyle: const TextStyle(
         fontSize: 16,
@@ -157,7 +157,7 @@ final ThemeData korateemTheme = ThemeData(
     style: OutlinedButton.styleFrom(
       foregroundColor: Color(0xFF43A047),
       side: BorderSide(color: Color(0xFF43A047), width: 2),
-      minimumSize: Size(double.infinity, 50),
+      minimumSize: Size.fromHeight(50),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       textStyle: const TextStyle(
         fontSize: 16,

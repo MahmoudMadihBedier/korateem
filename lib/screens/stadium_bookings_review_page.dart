@@ -57,60 +57,66 @@ class _StadiumBookingsReviewPageState extends State<StadiumBookingsReviewPage> {
   }
 
   Future<void> _promptReject(BuildContext context, String bookingId) async {
-    final controller = TextEditingController();
+    String reasonText = '';
     final reason = await showDialog<String>(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'سبب الرفض',
-                style: Theme.of(context).textTheme.titleLarge,
-                textAlign: TextAlign.right,
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controller,
-                maxLines: 3,
-                textDirection: TextDirection.rtl,
-                decoration: const InputDecoration(
-                  hintText: 'اكتب سبب الرفض...',
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setState) => Dialog(
+          backgroundColor: const Color(0xFF2A2A2A),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: SingleChildScrollView(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: 16 + MediaQuery.of(dialogContext).viewInsets.bottom,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'سبب الرفض',
+                  style: Theme.of(dialogContext).textTheme.titleLarge,
+                  textAlign: TextAlign.right,
                 ),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('إلغاء'),
-                    ),
+                const SizedBox(height: 12),
+                TextField(
+                  maxLines: 3,
+                  textDirection: TextDirection.rtl,
+                  onChanged: (v) => setState(() => reasonText = v),
+                  decoration: const InputDecoration(
+                    hintText: 'اكتب سبب الرفض...',
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () =>
-                          Navigator.pop(context, controller.text.trim()),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFCF6679),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(dialogContext),
+                        child: const Text('إلغاء'),
                       ),
-                      child: const Text('رفض'),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () =>
+                            Navigator.pop(dialogContext, reasonText.trim()),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFCF6679),
+                        ),
+                        child: const Text('رفض'),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
-    controller.dispose();
 
     final trimmed = (reason ?? '').trim();
     if (trimmed.isEmpty) return;

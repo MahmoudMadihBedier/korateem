@@ -651,7 +651,6 @@ class _ActivityTabState extends State<_ActivityTab> {
         ),
       ),
     );
-    controller.dispose();
     final r = (reason ?? '').trim();
     if (r.isEmpty) return;
     await _bookingService.cancelParticipation(
