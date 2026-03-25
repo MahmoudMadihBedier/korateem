@@ -7,6 +7,7 @@ abstract class IPostRepository {
   Future<void> likePost(String postId, String userId);
   Future<void> addComment(String postId, CommentModel comment);
   Stream<PostModel?> watchPost(String postId);
+  Future<void> deletePost(String postId);
 }
 
 class PostRepository implements IPostRepository {
@@ -68,5 +69,13 @@ class PostRepository implements IPostRepository {
       if (!doc.exists || doc.data() == null) return null;
       return PostModel.fromFirestore(doc);
     });
+  }
+
+  @override
+  Future<void> deletePost(String postId) async {
+    if (postId.trim().isEmpty) {
+      throw ArgumentError('postId must not be empty');
+    }
+    await posts.doc(postId).delete();
   }
 }

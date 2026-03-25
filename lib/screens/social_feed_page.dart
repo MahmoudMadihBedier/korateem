@@ -348,6 +348,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
         },
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_social_feed',
         onPressed: () => _showCreatePostDialog(context),
         backgroundColor: const Color(0xFF43A047),
         child: const Icon(Icons.add),

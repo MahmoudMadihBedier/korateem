@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:korateem/services/booking_service.dart';
 import 'package:korateem/services/user_service.dart';
 import 'package:korateem/ui/modern_components.dart';
 
@@ -171,7 +175,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                     friendsCount: friendsCount,
                   ),
                   _InfoTab(email: email, phone: phone),
-                  const _ActivityTab(),
+                  _ActivityTab(uid: widget.uid),
                 ],
               ),
             ),
@@ -470,20 +474,420 @@ class _InfoRow extends StatelessWidget {
   }
 }
 
-class _ActivityTab extends StatelessWidget {
-  const _ActivityTab();
+class _ActivityTab extends StatefulWidget {
+  final String uid;
+  const _ActivityTab({required this.uid});
+
+  @override
+  State<_ActivityTab> createState() => _ActivityTabState();
+}
+
+class _ActivityTabState extends State<_ActivityTab> {
+  final BookingService _bookingService = BookingService();
+  final _controller = StreamController<List<QueryDocumentSnapshot>>.broadcast();
+
+  StreamSubscription<QuerySnapshot>? _subUser;
+  StreamSubscription<QuerySnapshot>? _subParticipant;
+
+  Map<String, QueryDocumentSnapshot> _userDocs = {};
+  Map<String, QueryDocumentSnapshot> _participantDocs = {};
+
+  bool _readyUser = false;
+  bool _readyParticipant = false;
+  Object? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    final col = FirebaseFirestore.instance.collection('bookings');
+
+    _subUser = col.where('userId', isEqualTo: widget.uid).snapshots().listen(
+      (snap) {
+        _readyUser = true;
+        _userDocs = {for (final d in snap.docs) d.id: d};
+        _emit();
+      },
+      onError: (e) {
+        _readyUser = true;
+        _error = e;
+        _emit();
+      },
+    );
+
+    _subParticipant =
+        col.where('participantIds', arrayContains: widget.uid).snapshots().listen(
+      (snap) {
+        _readyParticipant = true;
+        _participantDocs = {for (final d in snap.docs) d.id: d};
+        _emit();
+      },
+      onError: (e) {
+        _readyParticipant = true;
+        _error = e;
+        _emit();
+      },
+    );
+  }
+
+  void _emit() {
+    if (!(_readyUser && _readyParticipant)) return;
+    if (_error != null) {
+      _controller.addError(_error!);
+      return;
+    }
+    final merged = <String, QueryDocumentSnapshot>{};
+    merged.addAll(_userDocs);
+    merged.addAll(_participantDocs);
+
+    final docs = merged.values.toList();
+    docs.sort((a, b) {
+      DateTime readCreated(QueryDocumentSnapshot d) {
+        final data = d.data() as Map<String, dynamic>;
+        final ts = data['createdAt'];
+        if (ts is Timestamp) return ts.toDate();
+        final date = data['date'];
+        if (date is Timestamp) return date.toDate();
+        return DateTime.fromMillisecondsSinceEpoch(0);
+      }
+
+      return readCreated(b).compareTo(readCreated(a));
+    });
+    _controller.add(docs);
+  }
+
+  @override
+  void dispose() {
+    _subUser?.cancel();
+    _subParticipant?.cancel();
+    _controller.close();
+    super.dispose();
+  }
+
+  Color _statusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'accepted':
+      case 'approved':
+      case 'confirmed':
+        return const Color(0xFF43A047);
+      case 'rejected':
+        return const Color(0xFFCF6679);
+      case 'canceled':
+        return const Color(0xFF808080);
+      default:
+        return const Color(0xFFFFA500);
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status.toLowerCase()) {
+      case 'accepted':
+      case 'approved':
+      case 'confirmed':
+        return 'مقبول';
+      case 'rejected':
+        return 'مرفوض';
+      case 'canceled':
+        return 'ملغي';
+      default:
+        return 'قيد المراجعة';
+    }
+  }
+
+  Future<void> _promptCancel(
+    BuildContext context, {
+    required String bookingId,
+    required String userId,
+  }) async {
+    final controller = TextEditingController();
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: const Color(0xFF2A2A2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'سبب الإلغاء',
+                style: Theme.of(context).textTheme.titleLarge,
+                textAlign: TextAlign.right,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                maxLines: 3,
+                textDirection: TextDirection.rtl,
+                decoration: const InputDecoration(
+                  hintText: 'اكتب سبب الإلغاء...',
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('رجوع'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () =>
+                          Navigator.pop(context, controller.text.trim()),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFCF6679),
+                      ),
+                      child: const Text('إلغاء'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    controller.dispose();
+    final r = (reason ?? '').trim();
+    if (r.isEmpty) return;
+    await _bookingService.cancelParticipation(
+      bookingId: bookingId,
+      userId: userId,
+      reason: r,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(24),
-        child: EmptyState(
-          icon: Icons.timeline_outlined,
-          title: 'قريباً',
-          subtitle: 'سيظهر هنا نشاطك (الحجوزات والتقييمات).',
-        ),
-      ),
+    return StreamBuilder<List<QueryDocumentSnapshot>>(
+      stream: _controller.stream,
+      builder: (context, snapshot) {
+        if (!(_readyUser && _readyParticipant)) {
+          return const ModernLoading();
+        }
+        if (snapshot.hasError) {
+          return const Padding(
+            padding: EdgeInsets.all(24),
+            child: EmptyState(
+              icon: Icons.error_outline,
+              title: 'تعذر تحميل الحجوزات',
+              subtitle: 'تحقق من صلاحيات Firebase أو قواعد Firestore.',
+            ),
+          );
+        }
+
+        final docs = snapshot.data ?? const [];
+        if (docs.isEmpty) {
+          return const Padding(
+            padding: EdgeInsets.all(24),
+            child: EmptyState(
+              icon: Icons.calendar_month_outlined,
+              title: 'لا توجد حجوزات بعد',
+              subtitle: 'ابدأ بحجز ملعب من صفحة الملاعب.',
+            ),
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(12, 16, 12, 24),
+          itemCount: docs.length,
+          itemBuilder: (context, index) {
+            final doc = docs[index];
+            final data = doc.data() as Map<String, dynamic>;
+            final bookingId = doc.id;
+
+            final stadiumName = (data['stadiumName'] ?? 'ملعب').toString();
+            final teamName = (data['teamName'] ?? 'فريق').toString();
+            final opponent = (data['opponentTeamName'] ?? 'فريق').toString();
+            final time = (data['time'] ?? '').toString();
+            final endTime = (data['endTime'] ?? '').toString();
+            final status = (data['status'] ?? 'pending').toString();
+            final rejectionReason =
+                (data['rejectionReason'] ?? '').toString().trim();
+
+            final date = data['date'];
+            final dateText = date is Timestamp ? date.toDate() : null;
+            final dateLabel = dateText == null
+                ? '—'
+                : '${dateText.year}-${dateText.month.toString().padLeft(2, '0')}-${dateText.day.toString().padLeft(2, '0')}';
+
+            final teamMembers = (data['teamMemberIds'] is List)
+                ? List<String>.from(data['teamMemberIds'] as List)
+                : <String>[];
+            final oppMembers = (data['opponentMemberIds'] is List)
+                ? List<String>.from(data['opponentMemberIds'] as List)
+                : <String>[];
+            final teamCaptainId = (data['teamCaptainId'] ?? '').toString();
+            final oppCaptainId = (data['opponentCaptainId'] ?? '').toString();
+
+            final isTeamMember = teamMembers.contains(widget.uid);
+            final isOppMember = oppMembers.contains(widget.uid);
+            final captainForMe =
+                isTeamMember ? teamCaptainId : (isOppMember ? oppCaptainId : '');
+            final isCaptain = captainForMe.isNotEmpty && captainForMe == widget.uid;
+
+            final canceledIds = (data['canceledParticipantIds'] is List)
+                ? List<String>.from(data['canceledParticipantIds'] as List)
+                : <String>[];
+            final alreadyCanceled = canceledIds.contains(widget.uid);
+
+            String myCancelReason() {
+              final list = data['cancellations'];
+              if (list is! List) return '';
+              for (final item in list) {
+                if (item is Map && item['userId']?.toString() == widget.uid) {
+                  return (item['reason'] ?? '').toString().trim();
+                }
+              }
+              return '';
+            }
+
+            final normalizedStatus = status.toLowerCase();
+            final canCancel = !alreadyCanceled &&
+                !isCaptain &&
+                (isTeamMember || isOppMember) &&
+                (normalizedStatus == 'pending' ||
+                    normalizedStatus == 'accepted' ||
+                    normalizedStatus == 'approved' ||
+                    normalizedStatus == 'confirmed');
+
+            final statusColor = _statusColor(status);
+            final statusLabel = _statusLabel(status);
+            final reason = myCancelReason();
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: ModernCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 42,
+                          height: 42,
+                          decoration: BoxDecoration(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: Icon(
+                            Icons.stadium_outlined,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                stadiumName,
+                                textAlign: TextAlign.right,
+                                style: Theme.of(context).textTheme.titleMedium,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                '$teamName vs $opponent',
+                                textAlign: TextAlign.right,
+                                style: Theme.of(context).textTheme.bodySmall,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: statusColor.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(99),
+                            border: Border.all(color: statusColor),
+                          ),
+                          child: Text(
+                            statusLabel,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: statusColor,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
+                        ),
+                        Text(
+                          dateLabel,
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      endTime.isEmpty ? time : '$time - $endTime',
+                      textAlign: TextAlign.right,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    if (alreadyCanceled) ...[
+                      const SizedBox(height: 10),
+                      Text(
+                        reason.isEmpty ? 'انسحبت من هذا الحجز' : 'انسحبت: $reason',
+                        textAlign: TextAlign.right,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: const Color(0xFFCF6679),
+                            ),
+                      ),
+                    ],
+                    if (normalizedStatus == 'rejected' &&
+                        rejectionReason.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'سبب الرفض: $rejectionReason',
+                        textAlign: TextAlign.right,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: const Color(0xFFCF6679),
+                            ),
+                      ),
+                    ],
+                    if (canCancel) ...[
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 44,
+                        child: OutlinedButton.icon(
+                          onPressed: () => _promptCancel(
+                            context,
+                            bookingId: bookingId,
+                            userId: widget.uid,
+                          ),
+                          icon: const Icon(Icons.cancel_outlined),
+                          label: const Text('إلغاء مشاركتي'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: const Color(0xFFCF6679),
+                            side: const BorderSide(color: Color(0xFFCF6679)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

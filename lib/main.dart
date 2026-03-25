@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:korateem/screens/login_screen.dart';
-import 'package:korateem/screens/home_screen.dart';
+import 'package:korateem/screens/role_gate.dart';
 import 'package:korateem/services/auth_service.dart';
 import 'package:provider/provider.dart';
 import 'package:korateem/ui/theme.dart';
@@ -49,7 +49,8 @@ class MyApp extends StatelessWidget {
             );
           }
           if (snapshot.hasData) {
-            return const HomeScreen();
+            final uid = authService.currentUser?.uid ?? '';
+            return RoleGate(uid: uid);
           } else {
             return  LoginScreen();
           }
