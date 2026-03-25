@@ -5,6 +5,8 @@ import '../models/team_model.dart';
 import 'create_team_page.dart';
 import '../features/user/data/repositories/user_repository.dart';
 import '../features/user/data/models/user_model.dart';
+import 'package:korateem/services/user_role_service.dart';
+import 'package:korateem/ui/modern_components.dart';
 
 class TeamScreen extends StatelessWidget {
   final String currentUserId;
@@ -237,6 +239,24 @@ class TeamScreen extends StatelessWidget {
         body: const Center(child: Text('سجل الدخول علشان تنشئ وتعرض فرقك')),
       );
     }
+    final roleService = UserRoleService();
+    return StreamBuilder<String?>(
+      stream: roleService.watchRole(currentUserId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(body: ModernLoading());
+        }
+        final role = (snapshot.data ?? '').toLowerCase().trim();
+        if (role == 'owner') {
+          return const Scaffold(
+            backgroundColor: Color(0xFF121212),
+            body: EmptyState(
+              icon: Icons.lock_outline,
+              title: 'غير متاح',
+              subtitle: 'حساب صاحب الملعب لا يملك صلاحيات اللاعب/الفرق',
+            ),
+          );
+        }
     return Scaffold(
       appBar: AppBar(
         title: const Text('الفرق'),
@@ -326,6 +346,7 @@ class TeamScreen extends StatelessWidget {
       floatingActionButton: currentUserId.trim().isEmpty
           ? null
           : FloatingActionButton(
+              heroTag: 'fab_team',
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -334,6 +355,8 @@ class TeamScreen extends StatelessWidget {
               ),
               child: const Icon(Icons.add),
             ),
+    );
+      },
     );
   }
 }

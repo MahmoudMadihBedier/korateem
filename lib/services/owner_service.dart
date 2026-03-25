@@ -15,6 +15,8 @@ abstract class IOwnerService {
   Stream<QuerySnapshot> getOwnerStadiums(String ownerId);
   Stream<QuerySnapshot> getBookings(String stadiumId);
   Future<void> contactTeam(String bookingId, String message);
+  Future<void> acceptBooking(String bookingId);
+  Future<void> rejectBooking(String bookingId, String reason);
 }
 
 class OwnerService implements IOwnerService {
@@ -90,5 +92,33 @@ class OwnerService implements IOwnerService {
       'message': message,
       'timestamp': FieldValue.serverTimestamp(),
     });
+  }
+
+  @override
+  Future<void> acceptBooking(String bookingId) async {
+    if (bookingId.trim().isEmpty) {
+      throw ArgumentError('bookingId must not be empty');
+    }
+    await bookings.doc(bookingId).set({
+      'status': 'accepted',
+      'rejectionReason': FieldValue.delete(),
+      'acceptedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  @override
+  Future<void> rejectBooking(String bookingId, String reason) async {
+    if (bookingId.trim().isEmpty) {
+      throw ArgumentError('bookingId must not be empty');
+    }
+    final r = reason.trim();
+    if (r.isEmpty) {
+      throw ArgumentError('reason must not be empty');
+    }
+    await bookings.doc(bookingId).set({
+      'status': 'rejected',
+      'rejectionReason': r,
+      'rejectedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
   }
 }

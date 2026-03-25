@@ -474,7 +474,8 @@ class _FieldsScreenState extends State<FieldsScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => BookingScreen(fieldId: fieldId),
+                        builder: (context) =>
+                            BookingScreen(stadiumId: fieldId),
                       ),
                     );
                   },

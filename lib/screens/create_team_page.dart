@@ -7,6 +7,7 @@ import '../ui/modern_components.dart';
 import '../services/team_service.dart';
 import '../features/user/data/models/user_model.dart';
 import '../features/user/data/repositories/user_repository.dart';
+import '../services/user_role_service.dart';
 
 class CreateTeamPage extends StatefulWidget {
   final String currentUserId;
@@ -248,14 +249,38 @@ class _CreateTeamPageState extends State<CreateTeamPage>
       );
     }
 
-    final selectedCount = _selectedIds.length;
-    final canCreate = !_saving && selectedCount == 5;
+    final roleService = UserRoleService();
+    return StreamBuilder<String?>(
+      stream: roleService.watchRole(widget.currentUserId),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Scaffold(
+            backgroundColor: const Color(0xFF121212),
+            appBar: ModernAppBar(title: 'إنشاء فريق'),
+            body: ModernLoading(),
+          );
+        }
+        final role = (snapshot.data ?? '').toLowerCase().trim();
+        if (role == 'owner') {
+          return Scaffold(
+            backgroundColor: const Color(0xFF121212),
+            appBar: ModernAppBar(title: 'إنشاء فريق'),
+            body: const EmptyState(
+              icon: Icons.lock_outline,
+              title: 'غير متاح',
+              subtitle: 'حساب صاحب الملعب لا يملك صلاحيات اللاعب/الفرق',
+            ),
+          );
+        }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF121212),
-      appBar: ModernAppBar(title: 'إنشاء فريق'),
-      body: Column(
-        children: [
+        final selectedCount = _selectedIds.length;
+        final canCreate = !_saving && selectedCount == 5;
+
+        return Scaffold(
+          backgroundColor: const Color(0xFF121212),
+          appBar: ModernAppBar(title: 'إنشاء فريق'),
+          body: Column(
+            children: [
           Padding(
             padding: const EdgeInsets.all(12),
             child: ModernCard(
@@ -381,8 +406,10 @@ class _CreateTeamPageState extends State<CreateTeamPage>
               ),
             ),
           ),
-        ],
-      ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

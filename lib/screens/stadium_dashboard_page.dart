@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:provider/provider.dart';
+import 'package:korateem/services/auth_service.dart';
+import 'package:korateem/services/user_role_service.dart';
+import 'package:korateem/screens/stadium_bookings_review_page.dart';
+import 'package:korateem/screens/stadium_schedule_page.dart';
 import '../ui/modern_components.dart';
 import '../../services/owner_service.dart';
 
@@ -24,6 +29,38 @@ class _StadiumDashboardPageState extends State<StadiumDashboardPage> {
 
   @override
   Widget build(BuildContext context) {
+    final uid =
+        Provider.of<AuthService>(context, listen: false).currentUser?.uid ?? '';
+    final roleService = UserRoleService();
+    if (uid.trim().isEmpty || uid != widget.ownerId) {
+      return const Scaffold(
+        backgroundColor: Color(0xFF121212),
+        body: EmptyState(
+          icon: Icons.lock_outline,
+          title: 'غير مسموح',
+          subtitle: 'هذه الصفحة متاحة لصاحب الملعب فقط',
+        ),
+      );
+    }
+
+    return StreamBuilder<String?>(
+      stream: roleService.watchRole(uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(body: ModernLoading());
+        }
+        final role = (snapshot.data ?? '').toLowerCase().trim();
+        if (role != 'owner') {
+          return const Scaffold(
+            backgroundColor: Color(0xFF121212),
+            body: EmptyState(
+              icon: Icons.lock_outline,
+              title: 'غير مسموح',
+              subtitle: 'حسابك لاعب. لا يمكنك إدارة الملاعب.',
+            ),
+          );
+        }
+
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
       appBar: ModernAppBar(title: 'My Stadiums'),
@@ -170,9 +207,18 @@ class _StadiumDashboardPageState extends State<StadiumDashboardPage> {
                             Expanded(
                               child: _buildActionButton(
                                 icon: Icons.calendar_month,
-                                label: 'Bookings',
+                                label: 'الحجوزات',
                                 color: const Color(0xFF43A047),
-                                onTap: () => _showBookings(stadiumId),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => StadiumBookingsReviewPage(
+                                      stadiumId: stadiumId,
+                                      stadiumName: (stadium['name'] ?? 'ملعب')
+                                          .toString(),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -182,6 +228,21 @@ class _StadiumDashboardPageState extends State<StadiumDashboardPage> {
                                 label: 'Messages',
                                 color: const Color(0xFF66BB6A),
                                 onTap: () => _showChat(stadiumId),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildActionButton(
+                                icon: Icons.schedule,
+                                label: 'Schedule',
+                                color: const Color(0xFFFFA500),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        StadiumSchedulePage(stadiumId: stadiumId),
+                                  ),
+                                ),
                               ),
                             ),
                           ],
@@ -196,6 +257,7 @@ class _StadiumDashboardPageState extends State<StadiumDashboardPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'fab_stadium_dashboard',
         onPressed: () {
           Navigator.pushNamed(
             context,
@@ -206,6 +268,8 @@ class _StadiumDashboardPageState extends State<StadiumDashboardPage> {
         backgroundColor: const Color(0xFF43A047),
         child: const Icon(Icons.add),
       ),
+    );
+      },
     );
   }
 
@@ -237,162 +301,6 @@ class _StadiumDashboardPageState extends State<StadiumDashboardPage> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  void _showBookings(String stadiumId) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF1E1E1E),
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Icon(Icons.calendar_month, color: Color(0xFF43A047)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Stadium Bookings',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close, color: Color(0xFF808080)),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: StreamBuilder<QuerySnapshot>(
-                  stream: _ownerService.getBookings(stadiumId),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Center(child: ModernLoading());
-                    }
-
-                    if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                      return Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.inbox_outlined,
-                                size: 48,
-                                color: Color(0xFF404040),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'No bookings yet',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-
-                    final bookings = snapshot.data!.docs;
-
-                    return ListView.builder(
-                      padding: const EdgeInsets.all(12),
-                      itemCount: bookings.length,
-                      itemBuilder: (context, index) {
-                        final booking =
-                            bookings[index].data() as Map<String, dynamic>;
-
-                        return Container(
-                          margin: const EdgeInsets.only(bottom: 8),
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF1E1E1E),
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFF404040)),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Team: ${booking['teamName'] ?? 'Unknown'}',
-                                style: Theme.of(context).textTheme.titleSmall,
-                              ),
-                              const SizedBox(height: 8),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.calendar_today,
-                                    size: 14,
-                                    color: Color(0xFF43A047),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    booking['date'] ?? 'N/A',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.schedule,
-                                    size: 14,
-                                    color: Color(0xFF43A047),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    booking['time'] ?? 'N/A',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 4),
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.phone,
-                                    size: 14,
-                                    color: Color(0xFF66BB6A),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    booking['phone'] ?? 'N/A',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

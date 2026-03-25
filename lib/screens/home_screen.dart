@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:korateem/screens/fields_screen.dart';
-import 'package:korateem/screens/owner_portal_screen.dart';
+import 'package:korateem/screens/owner_admin_page.dart';
 import 'package:korateem/screens/social_feed_page.dart';
+import 'package:korateem/screens/stadium_dashboard_page.dart';
 import 'package:korateem/screens/team_screen.dart';
 import 'package:korateem/screens/user_profile_screen.dart';
 import 'package:korateem/services/auth_service.dart';
@@ -9,7 +10,8 @@ import 'package:korateem/ui/modern_components.dart';
 import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final String userRole; // 'player' | 'owner'
+  const HomeScreen({super.key, required this.userRole});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -22,37 +24,78 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
     final uid = authService.currentUser?.uid ?? '';
+    final isOwner = widget.userRole.trim().toLowerCase() == 'owner';
 
-    final pages = <Widget>[
-      HomeTabPage(
-        uid: uid,
-        authService: authService,
-        onNavigateTab: (index) => setState(() => _selectedIndex = index),
-      ),
-      const FieldsScreen(),
-      TeamScreen(currentUserId: uid),
-      SocialFeedPage(userId: uid),
-      UserProfileScreen(uid: uid),
-    ];
+    final pages = isOwner
+        ? <Widget>[
+            HomeTabPage(
+              uid: uid,
+              userRole: widget.userRole,
+              authService: authService,
+              onNavigateTab: (index) => setState(() => _selectedIndex = index),
+              stadiumsTabIndex: 1,
+              feedTabIndex: 2,
+              adminTabIndex: 3,
+              profileTabIndex: 4,
+            ),
+            StadiumDashboardPage(ownerId: uid),
+            SocialFeedPage(userId: uid),
+            OwnerAdminPage(ownerId: uid),
+            UserProfileScreen(uid: uid),
+          ]
+        : <Widget>[
+            HomeTabPage(
+              uid: uid,
+              userRole: widget.userRole,
+              authService: authService,
+              onNavigateTab: (index) => setState(() => _selectedIndex = index),
+              fieldsTabIndex: 1,
+              teamsTabIndex: 2,
+              stadiumsTabIndex: 1,
+              feedTabIndex: 3,
+              profileTabIndex: 4,
+            ),
+            const FieldsScreen(),
+            TeamScreen(currentUserId: uid),
+            SocialFeedPage(userId: uid),
+            UserProfileScreen(uid: uid),
+          ];
 
     return Scaffold(
       body: IndexedStack(index: _selectedIndex, children: pages),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _selectedIndex,
         onDestinationSelected: (index) => setState(() => _selectedIndex = index),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.home), label: 'الرئيسية'),
-          NavigationDestination(
-            icon: Icon(Icons.sports_soccer),
-            label: 'الملاعب',
-          ),
-          NavigationDestination(icon: Icon(Icons.group), label: 'الفرق'),
-          NavigationDestination(
-            icon: Icon(Icons.dynamic_feed_outlined),
-            label: 'المنشورات',
-          ),
-          NavigationDestination(icon: Icon(Icons.person), label: 'حسابي'),
-        ],
+        destinations: isOwner
+            ? const [
+                NavigationDestination(icon: Icon(Icons.home), label: 'الرئيسية'),
+                NavigationDestination(
+                  icon: Icon(Icons.stadium_outlined),
+                  label: 'ملاعبك',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.dynamic_feed_outlined),
+                  label: 'المنشورات',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.admin_panel_settings_outlined),
+                  label: 'إدارة',
+                ),
+                NavigationDestination(icon: Icon(Icons.person), label: 'حسابي'),
+              ]
+            : const [
+                NavigationDestination(icon: Icon(Icons.home), label: 'الرئيسية'),
+                NavigationDestination(
+                  icon: Icon(Icons.sports_soccer),
+                  label: 'الملاعب',
+                ),
+                NavigationDestination(icon: Icon(Icons.group), label: 'الفرق'),
+                NavigationDestination(
+                  icon: Icon(Icons.dynamic_feed_outlined),
+                  label: 'المنشورات',
+                ),
+                NavigationDestination(icon: Icon(Icons.person), label: 'حسابي'),
+              ],
       ),
     );
   }
@@ -60,14 +103,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
 class HomeTabPage extends StatefulWidget {
   final String uid;
+  final String userRole;
   final AuthService authService;
   final ValueChanged<int> onNavigateTab;
+  final int stadiumsTabIndex;
+  final int feedTabIndex;
+  final int profileTabIndex;
+  final int? fieldsTabIndex;
+  final int? teamsTabIndex;
+  final int? adminTabIndex;
 
   const HomeTabPage({
     super.key,
     required this.uid,
+    required this.userRole,
     required this.authService,
     required this.onNavigateTab,
+    required this.stadiumsTabIndex,
+    required this.feedTabIndex,
+    required this.profileTabIndex,
+    this.fieldsTabIndex,
+    this.teamsTabIndex,
+    this.adminTabIndex,
   });
 
   @override
@@ -97,6 +154,7 @@ class _HomeTabPageState extends State<HomeTabPage>
 
   @override
   Widget build(BuildContext context) {
+    final isOwner = widget.userRole.trim().toLowerCase() == 'owner';
     final userName = widget.authService.currentUser?.displayName;
     final greetingName = (userName == null || userName.trim().isEmpty)
         ? 'مستخدم'
@@ -209,109 +267,91 @@ class _HomeTabPageState extends State<HomeTabPage>
                     const SizedBox(height: 12),
                     _QuickActionsGrid(
                       controller: _controller,
-                      actions: [
-                        _HomeAction(
-                          icon: Icons.sports_soccer,
-                          title: 'الملاعب',
-                          subtitle: 'اكتشف واحجز',
-                          onTap: () => widget.onNavigateTab(1),
-                        ),
-                        _HomeAction(
-                          icon: Icons.group,
-                          title: 'الفرق',
-                          subtitle: 'انضم أو أنشئ',
-                          onTap: () => widget.onNavigateTab(2),
-                        ),
-                        _HomeAction(
-                          icon: Icons.feed,
-                          title: 'المنشورات',
-                          subtitle: 'شارك وتفاعل',
-                          onTap: () => widget.onNavigateTab(3),
-                        ),
-                        _HomeAction(
-                          icon: Icons.edit,
-                          title: 'تعديل الملف',
-                          subtitle: 'حدّث بياناتك',
-                          onTap: () => Navigator.pushNamed(
-                            context,
-                            '/user-profile-edit',
-                            arguments: {'userId': widget.uid},
-                          ),
-                        ),
-                      ],
+                      actions: isOwner
+                          ? [
+                              _HomeAction(
+                                icon: Icons.stadium_outlined,
+                                title: 'ملاعبك',
+                                subtitle: 'لوحة المالك',
+                                onTap: () =>
+                                    widget.onNavigateTab(widget.stadiumsTabIndex),
+                              ),
+                              _HomeAction(
+                                icon: Icons.dynamic_feed_outlined,
+                                title: 'المنشورات',
+                                subtitle: 'تابع المجتمع',
+                                onTap: () =>
+                                    widget.onNavigateTab(widget.feedTabIndex),
+                              ),
+                              _HomeAction(
+                                icon: Icons.admin_panel_settings_outlined,
+                                title: 'إدارة',
+                                subtitle: 'لاعبين ومنشورات',
+                                onTap: () => widget.onNavigateTab(
+                                  widget.adminTabIndex ?? widget.feedTabIndex,
+                                ),
+                              ),
+                              _HomeAction(
+                                icon: Icons.edit,
+                                title: 'تعديل الملف',
+                                subtitle: 'حدّث بياناتك',
+                                onTap: () => Navigator.pushNamed(
+                                  context,
+                                  '/user-profile-edit',
+                                  arguments: {'userId': widget.uid},
+                                ),
+                              ),
+                            ]
+                          : [
+                              _HomeAction(
+                                icon: Icons.sports_soccer,
+                                title: 'الملاعب',
+                                subtitle: 'اكتشف واحجز',
+                                onTap: () => widget.onNavigateTab(
+                                  widget.fieldsTabIndex ?? widget.stadiumsTabIndex,
+                                ),
+                              ),
+                              _HomeAction(
+                                icon: Icons.group,
+                                title: 'الفرق',
+                                subtitle: 'انضم أو أنشئ',
+                                onTap: () => widget.onNavigateTab(
+                                  widget.teamsTabIndex ?? widget.feedTabIndex,
+                                ),
+                              ),
+                              _HomeAction(
+                                icon: Icons.dynamic_feed_outlined,
+                                title: 'المنشورات',
+                                subtitle: 'شارك وتفاعل',
+                                onTap: () =>
+                                    widget.onNavigateTab(widget.feedTabIndex),
+                              ),
+                              _HomeAction(
+                                icon: Icons.edit,
+                                title: 'تعديل الملف',
+                                subtitle: 'حدّث بياناتك',
+                                onTap: () => Navigator.pushNamed(
+                                  context,
+                                  '/user-profile-edit',
+                                  arguments: {'userId': widget.uid},
+                                ),
+                              ),
+                            ],
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'الميزات الجديدة',
+                      isOwner ? 'إدارة الملعب' : 'الميزات الجديدة',
                       textAlign: TextAlign.right,
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                     const SizedBox(height: 12),
-                    _ModernFeatureList(controller: _controller, uid: widget.uid),
-                    const SizedBox(height: 24),
-                    Text(
-                      'للأصحاب',
-                      textAlign: TextAlign.right,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 12),
-                    _StaggeredIn(
+                    _ModernFeatureList(
                       controller: _controller,
-                      index: 7,
-                      child: ModernCard(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                OwnerPortalScreen(ownerId: widget.uid),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .primary
-                                    .withOpacity(0.12),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Icon(
-                                Icons.business,
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    'إدارة ملعبك',
-                                    textAlign: TextAlign.right,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    'بوابة صاحب الملعب وإدارة الحجوزات',
-                                    textAlign: TextAlign.right,
-                                    style: Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Icon(
-                              Icons.arrow_back_ios_new,
-                              size: 16,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ],
-                        ),
-                      ),
+                      uid: widget.uid,
+                      isOwner: isOwner,
+                      onNavigateTab: widget.onNavigateTab,
+                      stadiumsTabIndex: widget.stadiumsTabIndex,
+                      adminTabIndex: widget.adminTabIndex,
                     ),
                   ],
                 ),
@@ -324,6 +364,7 @@ class _HomeTabPageState extends State<HomeTabPage>
   }
 
   Widget _buildDrawer(BuildContext context) {
+    final isOwner = widget.userRole.trim().toLowerCase() == 'owner';
     final displayName = widget.authService.currentUser?.displayName ?? 'المستخدم';
     final email = widget.authService.currentUser?.email ?? '';
     final photoUrl = widget.authService.currentUser?.photoURL;
@@ -396,21 +437,27 @@ class _HomeTabPageState extends State<HomeTabPage>
             title: const Text('حسابي'),
             onTap: () {
               Navigator.pop(context);
-              widget.onNavigateTab(4);
+              widget.onNavigateTab(widget.profileTabIndex);
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.dashboard_customize),
-            title: const Text('لوحة التحكم'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(
-                context,
-                '/stadium-dashboard',
-                arguments: {'ownerId': widget.uid},
-              );
-            },
-          ),
+          if (isOwner && widget.adminTabIndex != null)
+            ListTile(
+              leading: const Icon(Icons.admin_panel_settings_outlined),
+              title: const Text('لوحة الإدارة'),
+              onTap: () {
+                Navigator.pop(context);
+                widget.onNavigateTab(widget.adminTabIndex!);
+              },
+            ),
+          if (isOwner)
+            ListTile(
+              leading: const Icon(Icons.stadium_outlined),
+              title: const Text('ملاعبك'),
+              onTap: () {
+                Navigator.pop(context);
+                widget.onNavigateTab(widget.stadiumsTabIndex);
+              },
+            ),
           const Divider(height: 1),
           ListTile(
             leading: const Icon(Icons.info_outline),
@@ -523,8 +570,19 @@ class _QuickActionsGrid extends StatelessWidget {
 class _ModernFeatureList extends StatelessWidget {
   final AnimationController controller;
   final String uid;
+  final bool isOwner;
+  final ValueChanged<int> onNavigateTab;
+  final int stadiumsTabIndex;
+  final int? adminTabIndex;
 
-  const _ModernFeatureList({required this.controller, required this.uid});
+  const _ModernFeatureList({
+    required this.controller,
+    required this.uid,
+    required this.isOwner,
+    required this.onNavigateTab,
+    required this.stadiumsTabIndex,
+    required this.adminTabIndex,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -534,46 +592,47 @@ class _ModernFeatureList extends StatelessWidget {
       String subtitle,
       VoidCallback onTap,
     })>[
-      (
-        icon: Icons.person_add_alt_1,
-        title: 'ابحث عن لاعب',
-        subtitle: 'جد زملاء لفريقك',
-        onTap: () => Navigator.pushNamed(
-          context,
-          '/search-friends',
-          arguments: {'currentUserId': uid},
+      if (!isOwner) ...[
+        (
+          icon: Icons.person_add_alt_1,
+          title: 'ابحث عن لاعب',
+          subtitle: 'جد زملاء لفريقك',
+          onTap: () => Navigator.pushNamed(
+            context,
+            '/search-friends',
+            arguments: {'currentUserId': uid},
+          ),
         ),
-      ),
-      (
-        icon: Icons.star_rate_rounded,
-        title: 'قيّم لاعب',
-        subtitle: 'شارك رأيك',
-        onTap: () => Navigator.pushNamed(
-          context,
-          '/rate-user',
-          arguments: {'userId': '', 'userName': ''},
+        (
+          icon: Icons.star_rate_rounded,
+          title: 'قيّم لاعب',
+          subtitle: 'شارك رأيك',
+          onTap: () => Navigator.pushNamed(
+            context,
+            '/rate-user',
+            arguments: {'userId': '', 'userName': ''},
+          ),
         ),
-      ),
-      (
-        icon: Icons.stadium,
-        title: 'ملعب جديد',
-        subtitle: 'أضف ملعبك',
-        onTap: () => Navigator.pushNamed(
-          context,
-          '/stadium-profile',
-          arguments: {'ownerId': uid},
+      ] else ...[
+        (
+          icon: Icons.stadium_outlined,
+          title: 'ملاعبك',
+          subtitle: 'عرض وإدارة الملاعب',
+          onTap: () => onNavigateTab(stadiumsTabIndex),
         ),
-      ),
-      (
-        icon: Icons.dashboard,
-        title: 'لوحة التحكم',
-        subtitle: 'إدارة الحجوزات',
-        onTap: () => Navigator.pushNamed(
-          context,
-          '/stadium-dashboard',
-          arguments: {'ownerId': uid},
+        (
+          icon: Icons.calendar_month_outlined,
+          title: 'الحجوزات',
+          subtitle: 'تابع كل الحجوزات',
+          onTap: () => onNavigateTab(stadiumsTabIndex),
         ),
-      ),
+        (
+          icon: Icons.admin_panel_settings_outlined,
+          title: 'إدارة المحتوى',
+          subtitle: 'لاعبين ومنشورات',
+          onTap: () => onNavigateTab(adminTabIndex ?? stadiumsTabIndex),
+        ),
+      ],
     ];
 
     return Column(
