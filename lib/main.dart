@@ -31,6 +31,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context);
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'كورة تيم',
       theme: korateemTheme,
       locale: const Locale('ar'),
