@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:korateem/screens/fields_screen.dart';
 import 'package:korateem/screens/owner_portal_screen.dart';
+import 'package:korateem/screens/social_feed_page.dart';
 import 'package:korateem/screens/team_screen.dart';
 import 'package:korateem/screens/user_profile_screen.dart';
 import 'package:korateem/services/auth_service.dart';
@@ -30,6 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       const FieldsScreen(),
       TeamScreen(currentUserId: uid),
+      SocialFeedPage(userId: uid),
       UserProfileScreen(uid: uid),
     ];
 
@@ -45,6 +47,10 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'الملاعب',
           ),
           NavigationDestination(icon: Icon(Icons.group), label: 'الفرق'),
+          NavigationDestination(
+            icon: Icon(Icons.dynamic_feed_outlined),
+            label: 'المنشورات',
+          ),
           NavigationDestination(icon: Icon(Icons.person), label: 'حسابي'),
         ],
       ),
@@ -220,11 +226,7 @@ class _HomeTabPageState extends State<HomeTabPage>
                           icon: Icons.feed,
                           title: 'المنشورات',
                           subtitle: 'شارك وتفاعل',
-                          onTap: () => Navigator.pushNamed(
-                            context,
-                            '/social-feed',
-                            arguments: {'userId': widget.uid},
-                          ),
+                          onTap: () => widget.onNavigateTab(3),
                         ),
                         _HomeAction(
                           icon: Icons.edit,
@@ -394,7 +396,7 @@ class _HomeTabPageState extends State<HomeTabPage>
             title: const Text('حسابي'),
             onTap: () {
               Navigator.pop(context);
-              widget.onNavigateTab(3);
+              widget.onNavigateTab(4);
             },
           ),
           ListTile(
