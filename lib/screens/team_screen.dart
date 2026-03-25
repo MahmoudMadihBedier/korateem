@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import '../services/team_service.dart';
 import '../models/team_model.dart';
 import 'create_team_page.dart';
@@ -9,6 +10,56 @@ class TeamScreen extends StatelessWidget {
   final String currentUserId;
 
   const TeamScreen({super.key, required this.currentUserId});
+
+  Widget _teamImage(TeamModel team, {required double width, required double height}) {
+    final url = team.imageUrl.trim();
+    if (url.isNotEmpty) {
+      return Image.network(
+        url,
+        width: width,
+        height: height,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) {
+          return Image.asset(
+            'assets/images/studim.jpeg',
+            width: width,
+            height: height,
+            fit: BoxFit.cover,
+          );
+        },
+      );
+    }
+
+    final data = team.imageData.trim();
+    if (data.isNotEmpty) {
+      try {
+        final bytes = base64Decode(data);
+        return Image.memory(
+          bytes,
+          width: width,
+          height: height,
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Image.asset(
+              'assets/images/studim.jpeg',
+              width: width,
+              height: height,
+              fit: BoxFit.cover,
+            );
+          },
+        );
+      } catch (_) {
+        // Fall through to placeholder.
+      }
+    }
+
+    return Image.asset(
+      'assets/images/studim.jpeg',
+      width: width,
+      height: height,
+      fit: BoxFit.cover,
+    );
+  }
 
   void _showTeamDetails(BuildContext context, TeamModel team) {
     final userRepository = UserRepository();
@@ -46,27 +97,11 @@ class TeamScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(14),
-                      child: team.imageUrl.trim().isNotEmpty
-                          ? Image.network(
-                              team.imageUrl,
-                              height: 180,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Image.asset(
-                                  'assets/images/studim.jpeg',
-                                  height: 180,
-                                  width: double.infinity,
-                                  fit: BoxFit.cover,
-                                );
-                              },
-                            )
-                          : Image.asset(
-                              'assets/images/studim.jpeg',
-                              height: 180,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                            ),
+                      child: _teamImage(
+                        team,
+                        width: double.infinity,
+                        height: 180,
+                      ),
                     ),
                     const SizedBox(height: 14),
                     Row(
@@ -272,27 +307,7 @@ class TeamScreen extends StatelessWidget {
                 child: ListTile(
                   leading: ClipRRect(
                     borderRadius: BorderRadius.circular(10),
-                    child: model.imageUrl.trim().isNotEmpty
-                        ? Image.network(
-                            model.imageUrl,
-                            width: 52,
-                            height: 52,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              return Image.asset(
-                                'assets/images/studim.jpeg',
-                                width: 52,
-                                height: 52,
-                                fit: BoxFit.cover,
-                              );
-                            },
-                          )
-                        : Image.asset(
-                            'assets/images/studim.jpeg',
-                            width: 52,
-                            height: 52,
-                            fit: BoxFit.cover,
-                          ),
+                    child: _teamImage(model, width: 52, height: 52),
                   ),
                   title: Text(
                     model.name,

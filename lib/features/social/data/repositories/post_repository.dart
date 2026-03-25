@@ -6,6 +6,7 @@ abstract class IPostRepository {
   Stream<List<PostModel>> getAllPosts();
   Future<void> likePost(String postId, String userId);
   Future<void> addComment(String postId, CommentModel comment);
+  Stream<PostModel?> watchPost(String postId);
 }
 
 class PostRepository implements IPostRepository {
@@ -34,8 +35,17 @@ class PostRepository implements IPostRepository {
     if (postId.trim().isEmpty) {
       throw ArgumentError('postId must not be empty');
     }
-    await posts.doc(postId).update({
-      'likes': FieldValue.arrayUnion([userId]),
+    final docRef = posts.doc(postId);
+    await FirebaseFirestore.instance.runTransaction((tx) async {
+      final snap = await tx.get(docRef);
+      final data = (snap.data() as Map<String, dynamic>?);
+      final likes = List<String>.from((data?['likes'] ?? []) as List);
+      final alreadyLiked = likes.contains(userId);
+      tx.update(docRef, {
+        'likes': alreadyLiked
+            ? FieldValue.arrayRemove([userId])
+            : FieldValue.arrayUnion([userId]),
+      });
     });
   }
 
@@ -46,6 +56,17 @@ class PostRepository implements IPostRepository {
     }
     await posts.doc(postId).update({
       'comments': FieldValue.arrayUnion([comment.toMap()]),
+    });
+  }
+
+  @override
+  Stream<PostModel?> watchPost(String postId) {
+    if (postId.trim().isEmpty) {
+      return const Stream.empty();
+    }
+    return posts.doc(postId).snapshots().map((doc) {
+      if (!doc.exists || doc.data() == null) return null;
+      return PostModel.fromFirestore(doc);
     });
   }
 }

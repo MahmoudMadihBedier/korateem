@@ -1,333 +1,283 @@
 import 'package:flutter/material.dart';
+import 'package:korateem/ui/modern_components.dart';
 import 'package:provider/provider.dart';
+
 import '../services/auth_service.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
   @override
-  _SignupScreenState createState() => _SignupScreenState();
+  State<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _SignupScreenState extends State<SignupScreen>
+    with SingleTickerProviderStateMixin {
   final nameController = TextEditingController();
   final emailController = TextEditingController();
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+
   bool _isLoading = false;
   bool _passwordsVisible = false;
   bool _agreedToTerms = false;
 
+  late final AnimationController _controller;
+  late final Animation<double> _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 650),
+    )..forward();
+    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    nameController.dispose();
+    emailController.dispose();
+    phoneController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isTablet = MediaQuery.of(context).size.width > 600;
-
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Color(0xFF0F4C75),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'إنشاء حساب جديد',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: isTablet ? 24 : 20,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Responsive header
-            Container(
-              height: isTablet ? 280 : 220,
-              width: double.infinity,
-              child: Stack(
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            pinned: true,
+            expandedHeight: 300,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: const Text('إنشاء حساب'),
+            flexibleSpace: FlexibleSpaceBar(
+              background: Stack(
                 fit: StackFit.expand,
                 children: [
                   Image.asset('assets/images/studim.jpeg', fit: BoxFit.cover),
-                  Container(
+                  DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
-                        colors: [
-                          Colors.black.withOpacity(0.65),
-                          Colors.black.withOpacity(0.25),
-                          Colors.black.withOpacity(0.65),
-                        ],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.65),
+                          Colors.black.withOpacity(0.28),
+                          Theme.of(context).scaffoldBackgroundColor,
+                        ],
+                        stops: const [0, 0.6, 1],
                       ),
                     ),
                   ),
-                  Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white.withOpacity(0.15),
-                          ),
-                          child: Icon(
-                            Icons.sports_soccer,
-                            size: isTablet ? 80 : 60,
-                            color: Colors.white,
+                  SafeArea(
+                    child: Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 72),
+                        child: FadeTransition(
+                          opacity: _fade,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 78,
+                                height: 78,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white.withOpacity(0.12),
+                                  border: Border.all(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .primary
+                                        .withOpacity(0.6),
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.person_add_alt_1,
+                                  color: Colors.white,
+                                  size: 38,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'ابدأ رحلتك',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .displaySmall
+                                    ?.copyWith(color: Colors.white),
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                'أنشئ حسابك للانضمام لمجتمع اللاعبين.',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(color: Colors.white70),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
                           ),
                         ),
-                        SizedBox(height: 12),
-                        Text(
-                          'كورة تيم',
-                          style: TextStyle(
-                            fontSize: isTablet ? 40 : 32,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          '⚽ انضم لمجتمع اللاعبين',
-                          style: TextStyle(
-                            fontSize: isTablet ? 16 : 12,
-                            color: Colors.white70,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            // Form
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: isTablet ? 48 : 24,
-                vertical: 32,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    'بيانات الحساب',
-                    style: TextStyle(
-                      fontSize: isTablet ? 20 : 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0F4C75),
-                    ),
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    'أكمل البيانات التالية لإنشاء حسابك',
-                    style: TextStyle(
-                      fontSize: isTablet ? 14 : 12,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                  SizedBox(height: 24),
-                  _buildTextField(
-                    controller: nameController,
-                    label: 'الاسم الكامل',
-                    icon: Icons.person_outline,
-                    hint: 'محمد علي',
-                    keyboardType: TextInputType.name,
-                  ),
-                  SizedBox(height: 16),
-                  _buildTextField(
-                    controller: emailController,
-                    label: 'البريد الإلكتروني',
-                    icon: Icons.email_outlined,
-                    hint: 'your@email.com',
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  SizedBox(height: 16),
-                  _buildTextField(
-                    controller: phoneController,
-                    label: 'رقم الهاتف المصري',
-                    icon: Icons.phone_outlined,
-                    hint: '+201012345678',
-                    keyboardType: TextInputType.phone,
-                  ),
-                  SizedBox(height: 16),
-                  _buildTextField(
-                    controller: passwordController,
-                    label: 'كلمة المرور',
-                    icon: Icons.lock_outline,
-                    hint: 'كلمة قوية (6 أحرف على الأقل)',
-                    obscureText: !_passwordsVisible,
-                    suffixIcon: GestureDetector(
-                      onTap: () => setState(
-                        () => _passwordsVisible = !_passwordsVisible,
-                      ),
-                      child: Icon(
-                        _passwordsVisible
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: Color(0xFF0F4C75),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  _buildTextField(
-                    controller: confirmPasswordController,
-                    label: 'تأكيد كلمة المرور',
-                    icon: Icons.lock_outline,
-                    hint: 'أعد إدخال كلمة المرور',
-                    obscureText: !_passwordsVisible,
-                  ),
-                  SizedBox(height: 24),
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _agreedToTerms,
-                        onChanged: (value) =>
-                            setState(() => _agreedToTerms = value ?? false),
-                        activeColor: Color(0xFF0F4C75),
-                        side: BorderSide(color: Color(0xFF0F4C75)),
-                      ),
-                      Expanded(
-                        child: Text(
-                          'أوافق على شروط الاستخدام',
-                          style: TextStyle(
-                            fontSize: isTablet ? 14 : 12,
-                            color: Colors.grey[700],
+          ),
+          SliverToBoxAdapter(
+            child: FadeTransition(
+              opacity: _fade,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 16, 12, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    ModernCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            'بيانات الحساب',
+                            style: Theme.of(context).textTheme.titleLarge,
+                            textAlign: TextAlign.right,
                           ),
-                          textDirection: TextDirection.rtl,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 24),
-                  _buildSignupButton(),
-                  SizedBox(height: 20),
-                  Container(
-                    padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey[200]!),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          'لديك حساب بالفعل؟ ',
-                          style: TextStyle(
-                            color: Colors.grey[700],
-                            fontSize: isTablet ? 14 : 12,
+                          const SizedBox(height: 6),
+                          Text(
+                            'اكتب بياناتك بشكل صحيح لإنشاء حسابك.',
+                            style: Theme.of(context).textTheme.bodySmall,
+                            textAlign: TextAlign.right,
                           ),
-                        ),
-                        GestureDetector(
-                          onTap: () => Navigator.pop(context),
-                          child: Text(
-                            'تسجيل الدخول',
-                            style: TextStyle(
-                              color: Color(0xFF0F4C75),
-                              fontWeight: FontWeight.bold,
-                              fontSize: isTablet ? 14 : 12,
+                          const SizedBox(height: 16),
+                          _AuthTextField(
+                            controller: nameController,
+                            label: 'الاسم الكامل',
+                            icon: Icons.person_outline,
+                            keyboardType: TextInputType.name,
+                            textInputAction: TextInputAction.next,
+                          ),
+                          const SizedBox(height: 12),
+                          _AuthTextField(
+                            controller: emailController,
+                            label: 'البريد الإلكتروني',
+                            icon: Icons.email_outlined,
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                          ),
+                          const SizedBox(height: 12),
+                          _AuthTextField(
+                            controller: phoneController,
+                            label: 'رقم الهاتف',
+                            icon: Icons.phone_outlined,
+                            keyboardType: TextInputType.phone,
+                            textInputAction: TextInputAction.next,
+                          ),
+                          const SizedBox(height: 12),
+                          _AuthTextField(
+                            controller: passwordController,
+                            label: 'كلمة المرور',
+                            icon: Icons.lock_outline,
+                            obscureText: !_passwordsVisible,
+                            textInputAction: TextInputAction.next,
+                            suffixIcon: IconButton(
+                              onPressed: () => setState(
+                                () => _passwordsVisible = !_passwordsVisible,
+                              ),
+                              icon: Icon(
+                                _passwordsVisible
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 12),
+                          _AuthTextField(
+                            controller: confirmPasswordController,
+                            label: 'تأكيد كلمة المرور',
+                            icon: Icons.lock_outline,
+                            obscureText: !_passwordsVisible,
+                            textInputAction: TextInputAction.done,
+                            onSubmitted: (_) => _isLoading ? null : _signup(),
+                          ),
+                          const SizedBox(height: 8),
+                          Directionality(
+                            textDirection: TextDirection.rtl,
+                            child: CheckboxListTile(
+                              value: _agreedToTerms,
+                              onChanged: (value) => setState(
+                                () => _agreedToTerms = value ?? false,
+                              ),
+                              activeColor:
+                                  Theme.of(context).colorScheme.primary,
+                              controlAffinity: ListTileControlAffinity.leading,
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(
+                                'أوافق على شروط الاستخدام',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          _PrimaryButton(
+                            label: 'إنشاء الحساب',
+                            isLoading: _isLoading,
+                            onPressed: _isLoading ? null : _signup,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    ModernCard(
+                      onTap: () => Navigator.pop(context),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.login_rounded,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  'لديك حساب بالفعل؟',
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                  textAlign: TextAlign.right,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'سجّل الدخول للمتابعة',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                  textAlign: TextAlign.right,
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            Icons.arrow_back_ios_new,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    String hint = '',
-    bool obscureText = false,
-    TextInputType keyboardType = TextInputType.text,
-    Widget? suffixIcon,
-  }) {
-    return TextField(
-      controller: controller,
-      obscureText: obscureText,
-      keyboardType: keyboardType,
-      textDirection: TextDirection.rtl,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: Icon(icon, color: Color(0xFF0F4C75)),
-        suffixIcon: suffixIcon,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Color(0xFF0F4C75), width: 2),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[200]!),
-        ),
-        filled: true,
-        fillColor: Colors.grey[50],
-        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      ),
-    );
-  }
-
-  Widget _buildSignupButton() {
-    return Container(
-      height: 56,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF0F4C75), Color(0xFF1E88E5)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0xFF0F4C75).withValues(alpha: 0.3),
-            blurRadius: 12,
-            offset: Offset(0, 6),
           ),
         ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: _isLoading ? null : _signup,
-          borderRadius: BorderRadius.circular(12),
-          child: Center(
-            child: _isLoading
-                ? SizedBox(
-                    height: 24,
-                    width: 24,
-                    child: CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                      strokeWidth: 2.5,
-                    ),
-                  )
-                : Text(
-                    'إنشاء الحساب',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-          ),
-        ),
       ),
     );
   }
@@ -384,11 +334,12 @@ class _SignupScreenState extends State<SignupScreen> {
       phoneController.text.trim(),
     );
 
+    if (!mounted) return;
     setState(() => _isLoading = false);
 
     if (user != null) {
-      _showSuccess('تم إنشاء الحساب بنجاح! 🎉');
-      await Future.delayed(Duration(seconds: 2));
+      _showSuccess('تم إنشاء الحساب بنجاح!');
+      await Future.delayed(const Duration(milliseconds: 900));
       Navigator.pop(context);
     } else {
       _showError(authService.errorMessage ?? 'خطأ في إنشاء الحساب');
@@ -400,16 +351,16 @@ class _SignupScreenState extends State<SignupScreen> {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.error_outline, color: Colors.white),
-            SizedBox(width: 12),
+            const Icon(Icons.error_outline, color: Colors.white),
+            const SizedBox(width: 12),
             Expanded(child: Text(message, textDirection: TextDirection.rtl)),
           ],
         ),
-        backgroundColor: Colors.red[600],
-        duration: Duration(seconds: 4),
+        backgroundColor: const Color(0xFFCF6679),
+        duration: const Duration(seconds: 4),
         behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -419,27 +370,88 @@ class _SignupScreenState extends State<SignupScreen> {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.check_circle_outline, color: Colors.white),
-            SizedBox(width: 12),
+            const Icon(Icons.check_circle_outline, color: Colors.white),
+            const SizedBox(width: 12),
             Expanded(child: Text(message, textDirection: TextDirection.rtl)),
           ],
         ),
-        backgroundColor: Colors.green[600],
-        duration: Duration(seconds: 2),
+        backgroundColor: const Color(0xFF43A047),
+        duration: const Duration(seconds: 2),
         behavior: SnackBarBehavior.floating,
-        margin: EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
+}
+
+class _AuthTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final IconData icon;
+  final bool obscureText;
+  final TextInputType keyboardType;
+  final TextInputAction textInputAction;
+  final Widget? suffixIcon;
+  final ValueChanged<String>? onSubmitted;
+
+  const _AuthTextField({
+    required this.controller,
+    required this.label,
+    required this.icon,
+    this.obscureText = false,
+    this.keyboardType = TextInputType.text,
+    this.textInputAction = TextInputAction.next,
+    this.suffixIcon,
+    this.onSubmitted,
+  });
 
   @override
-  void dispose() {
-    nameController.dispose();
-    emailController.dispose();
-    phoneController.dispose();
-    passwordController.dispose();
-    confirmPasswordController.dispose();
-    super.dispose();
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      textInputAction: textInputAction,
+      onSubmitted: onSubmitted,
+      textDirection: TextDirection.rtl,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        suffixIcon: suffixIcon,
+      ),
+    );
+  }
+}
+
+class _PrimaryButton extends StatelessWidget {
+  final String label;
+  final bool isLoading;
+  final VoidCallback? onPressed;
+
+  const _PrimaryButton({
+    required this.label,
+    required this.isLoading,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 52,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(double.infinity, 52),
+        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Text(label),
+      ),
+    );
   }
 }

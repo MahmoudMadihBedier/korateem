@@ -15,6 +15,26 @@ class _FieldsScreenState extends State<FieldsScreen> {
   String _searchQuery = '';
   bool _isGridView = false;
 
+  List<String> _extractPhotoUrls(Map<String, dynamic> data) {
+    final photos = data['photos'] ?? data['images'];
+    if (photos is List) {
+      return photos.whereType<String>().toList();
+    }
+    if (photos is Map) {
+      return photos.values.whereType<String>().toList();
+    }
+    return const [];
+  }
+
+  String _extractLocation(Map<String, dynamic> data) {
+    return (data['address'] ?? data['location'] ?? '').toString();
+  }
+
+  num? _extractPricePerHour(Map<String, dynamic> data) {
+    final value = data['pricePerHour'] ?? data['price'];
+    return value is num ? value : null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -117,6 +137,9 @@ class _FieldsScreenState extends State<FieldsScreen> {
 
   Widget _buildFieldCard(BuildContext context, dynamic fieldDoc) {
     final data = fieldDoc.data() as Map<String, dynamic>;
+    final photos = _extractPhotoUrls(data);
+    final location = _extractLocation(data);
+    final pricePerHour = _extractPricePerHour(data);
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -137,12 +160,8 @@ class _FieldsScreenState extends State<FieldsScreen> {
                   image: DecorationImage(
                     image:
                         () {
-                              final images = data['images'];
-                              final url = (images is List && images.isNotEmpty)
-                                  ? (images[0] is String
-                                        ? images[0] as String
-                                        : '')
-                                  : '';
+                              final url =
+                                  photos.isNotEmpty ? photos.first : '';
                               if (url.trim().isNotEmpty)
                                 return NetworkImage(url);
                               return const AssetImage(
@@ -213,7 +232,7 @@ class _FieldsScreenState extends State<FieldsScreen> {
                       SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          data['location'] ?? '',
+                          location,
                           style: TextStyle(fontSize: 11, color: Colors.grey),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -223,7 +242,9 @@ class _FieldsScreenState extends State<FieldsScreen> {
                   ),
                   SizedBox(height: 8),
                   Text(
-                    '${data['pricePerHour'] ?? 0} ج.م/ساعة',
+                    pricePerHour == null
+                        ? 'السعر غير متاح'
+                        : '${pricePerHour.toString()} ج.م/ساعة',
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.bold,
@@ -241,6 +262,9 @@ class _FieldsScreenState extends State<FieldsScreen> {
 
   Widget _buildFieldListTile(BuildContext context, dynamic fieldDoc) {
     final data = fieldDoc.data() as Map<String, dynamic>;
+    final photos = _extractPhotoUrls(data);
+    final location = _extractLocation(data);
+    final pricePerHour = _extractPricePerHour(data);
     return Card(
       elevation: 1,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -249,10 +273,7 @@ class _FieldsScreenState extends State<FieldsScreen> {
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: () {
-            final images = data['images'];
-            final url = (images is List && images.isNotEmpty)
-                ? (images[0] is String ? images[0] as String : '')
-                : '';
+            final url = photos.isNotEmpty ? photos.first : '';
             if (url.trim().isNotEmpty) {
               return Image.network(
                 url,
@@ -295,7 +316,7 @@ class _FieldsScreenState extends State<FieldsScreen> {
                 SizedBox(width: 4),
                 Expanded(
                   child: Text(
-                    data['location'] ?? '',
+                    location,
                     style: TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ),
@@ -303,7 +324,9 @@ class _FieldsScreenState extends State<FieldsScreen> {
             ),
             SizedBox(height: 4),
             Text(
-              '${data['pricePerHour'] ?? 0} ج.م/ساعة',
+              pricePerHour == null
+                  ? 'السعر غير متاح'
+                  : '${pricePerHour.toString()} ج.م/ساعة',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -341,6 +364,9 @@ class _FieldsScreenState extends State<FieldsScreen> {
     String fieldId,
     Map<String, dynamic> data,
   ) {
+    final photos = _extractPhotoUrls(data);
+    final location = _extractLocation(data);
+    final pricePerHour = _extractPricePerHour(data);
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
@@ -354,10 +380,7 @@ class _FieldsScreenState extends State<FieldsScreen> {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
                   child: () {
-                    final images = data['images'];
-                    final url = (images is List && images.isNotEmpty)
-                        ? (images[0] is String ? images[0] as String : '')
-                        : '';
+                    final url = photos.isNotEmpty ? photos.first : '';
                     if (url.trim().isNotEmpty) {
                       return Image.network(
                         url,
@@ -393,7 +416,9 @@ class _FieldsScreenState extends State<FieldsScreen> {
                       children: [
                         Text('السعر', style: TextStyle(color: Colors.grey)),
                         Text(
-                          '${data['pricePerHour'] ?? 0} ج.م/ساعة',
+                          pricePerHour == null
+                              ? 'غير متاح'
+                              : '${pricePerHour.toString()} ج.م/ساعة',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -426,7 +451,7 @@ class _FieldsScreenState extends State<FieldsScreen> {
                   children: [
                     Icon(Icons.location_on, color: Colors.grey, size: 18),
                     SizedBox(width: 8),
-                    Expanded(child: Text(data['location'] ?? '')),
+                    Expanded(child: Text(location)),
                   ],
                 ),
                 SizedBox(height: 12),

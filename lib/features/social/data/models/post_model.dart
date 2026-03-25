@@ -3,6 +3,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class PostModel {
   final String id;
   final String userId;
+  final String? userName;
+  final String? userImage;
   final String content;
   final String? imageUrl;
   final List<String> likes;
@@ -12,6 +14,8 @@ class PostModel {
   PostModel({
     required this.id,
     required this.userId,
+    this.userName,
+    this.userImage,
     required this.content,
     this.imageUrl,
     this.likes = const [],
@@ -24,6 +28,8 @@ class PostModel {
     return PostModel(
       id: doc.id,
       userId: data['userId'] ?? '',
+      userName: data['userName'],
+      userImage: data['userImage'],
       content: data['content'] ?? '',
       imageUrl: data['imageUrl'],
       likes: List<String>.from(data['likes'] ?? []),
@@ -37,6 +43,8 @@ class PostModel {
   Map<String, dynamic> toMap() {
     return {
       'userId': userId,
+      if (userName != null) 'userName': userName,
+      if (userImage != null) 'userImage': userImage,
       'content': content,
       'imageUrl': imageUrl,
       'likes': likes,
@@ -48,11 +56,15 @@ class PostModel {
 
 class CommentModel {
   final String userId;
+  final String? userName;
+  final String? userImage;
   final String text;
   final DateTime createdAt;
 
   CommentModel({
     required this.userId,
+    this.userName,
+    this.userImage,
     required this.text,
     required this.createdAt,
   });
@@ -60,6 +72,8 @@ class CommentModel {
   factory CommentModel.fromMap(Map<String, dynamic> map) {
     return CommentModel(
       userId: map['userId'] ?? '',
+      userName: map['userName'],
+      userImage: map['userImage'],
       text: map['text'] ?? '',
       createdAt: (map['createdAt'] as Timestamp).toDate(),
     );
@@ -68,6 +82,8 @@ class CommentModel {
   Map<String, dynamic> toMap() {
     return {
       'userId': userId,
+      if (userName != null) 'userName': userName,
+      if (userImage != null) 'userImage': userImage,
       'text': text,
       'createdAt': Timestamp.fromDate(createdAt),
     };

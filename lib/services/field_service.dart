@@ -7,7 +7,8 @@ abstract class IFieldService {
 
 class FieldService implements IFieldService {
   final CollectionReference fields = FirebaseFirestore.instance.collection(
-    'fields',
+    // Firestore collection in this app represents stadiums/fields.
+    'stadiums',
   );
 
   @override
