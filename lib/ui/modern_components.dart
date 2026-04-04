@@ -542,7 +542,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
     required this.title,
     this.showNotification = true,
     this.onNotificationTap,
-    this.glassy = false,
+    this.glassy = true,
   }) : super(key: key);
 
   @override
