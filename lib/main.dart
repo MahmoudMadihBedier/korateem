@@ -7,6 +7,9 @@ import 'package:korateem/services/auth_service.dart';
 import 'package:provider/provider.dart';
 import 'package:korateem/ui/theme.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:korateem/features/social/data/repositories/post_repository.dart';
+import 'package:korateem/features/social/domain/repositories/post_repository.dart';
+import 'package:korateem/features/user/data/repositories/user_repository.dart';
 // Feature screen imports
 import 'screens/user_profile_edit_page.dart';
 import 'screens/user_profile_page.dart';
@@ -20,7 +23,14 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(
-    ChangeNotifierProvider(create: (_) => AuthService(), child: const MyApp()),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthService()),
+        Provider<IPostRepository>(create: (_) => PostRepository()),
+        Provider<IUserRepository>(create: (_) => UserRepository()),
+      ],
+      child: const MyApp(),
+    ),
   );
 }
 

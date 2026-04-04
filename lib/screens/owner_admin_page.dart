@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:korateem/features/social/data/models/post_model.dart';
 import 'package:korateem/features/social/data/repositories/post_repository.dart';
+import 'package:korateem/features/social/domain/entities/post_entity.dart';
 import 'package:korateem/features/user/data/models/user_model.dart';
 import 'package:korateem/features/user/data/repositories/user_repository.dart';
 import 'package:korateem/ui/modern_components.dart';
@@ -49,7 +49,7 @@ class _OwnerAdminPageState extends State<OwnerAdminPage> {
                 return ListView.separated(
                   padding: const EdgeInsets.all(12),
                   itemCount: users.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
                   itemBuilder: (context, i) {
                     final u = users[i];
                     final hasImage =
@@ -84,8 +84,8 @@ class _OwnerAdminPageState extends State<OwnerAdminPage> {
                 );
               },
             ),
-            StreamBuilder<List<PostModel>>(
-              stream: _postRepository.getAllPosts(),
+            StreamBuilder<List<PostEntity>>(
+              stream: _postRepository.watchAllPosts(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData) return const ModernLoading();
                 final posts = snapshot.data!;
@@ -99,7 +99,7 @@ class _OwnerAdminPageState extends State<OwnerAdminPage> {
                 return ListView.separated(
                   padding: const EdgeInsets.all(12),
                   itemCount: posts.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
                   itemBuilder: (context, i) {
                     final p = posts[i];
                     final author = (p.userName ?? '').trim().isNotEmpty
