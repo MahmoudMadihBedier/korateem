@@ -55,6 +55,8 @@ class ModernCard extends StatefulWidget {
   final bool glassy;
   final double glassBlurSigma;
   final double glassOpacity;
+  final bool animateIn;
+  final Duration animateInDelay;
 
   const ModernCard({
     Key? key,
@@ -62,9 +64,11 @@ class ModernCard extends StatefulWidget {
     this.padding = const EdgeInsets.all(16),
     this.onTap,
     this.backgroundColor,
-    this.glassy = false,
+    this.glassy = true,
     this.glassBlurSigma = 14,
     this.glassOpacity = 0.14,
+    this.animateIn = true,
+    this.animateInDelay = Duration.zero,
   }) : super(key: key);
 
   const ModernCard.glass({
@@ -75,6 +79,8 @@ class ModernCard extends StatefulWidget {
     this.backgroundColor,
     this.glassBlurSigma = 14,
     this.glassOpacity = 0.14,
+    this.animateIn = true,
+    this.animateInDelay = Duration.zero,
   })  : glassy = true,
         super(key: key);
 
@@ -84,6 +90,19 @@ class ModernCard extends StatefulWidget {
 
 class _ModernCardState extends State<ModernCard> {
   bool _pressed = false;
+  double _appear = 1;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.animateIn) {
+      _appear = 0;
+      Future.delayed(widget.animateInDelay, () {
+        if (!mounted) return;
+        setState(() => _appear = 1);
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -106,7 +125,7 @@ class _ModernCardState extends State<ModernCard> {
             ),
           );
 
-    return AnimatedScale(
+    final card = AnimatedScale(
       scale: _pressed ? 0.985 : 1,
       duration: const Duration(milliseconds: 120),
       curve: Curves.easeOut,
@@ -135,6 +154,20 @@ class _ModernCardState extends State<ModernCard> {
             child: content,
           ),
         ),
+      ),
+    );
+
+    if (!widget.animateIn) return card;
+
+    return AnimatedOpacity(
+      opacity: _appear,
+      duration: const Duration(milliseconds: 260),
+      curve: Curves.easeOut,
+      child: AnimatedSlide(
+        offset: Offset(0, (1 - _appear) * 0.035),
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+        child: card,
       ),
     );
   }
