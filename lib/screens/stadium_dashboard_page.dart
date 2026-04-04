@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:korateem/services/auth_service.dart';
 import 'package:korateem/services/user_role_service.dart';
 import 'package:korateem/screens/stadium_bookings_review_page.dart';
+import 'package:korateem/screens/stadium_photos_page.dart';
 import 'package:korateem/screens/stadium_schedule_page.dart';
 import '../ui/modern_components.dart';
 import '../../services/owner_service.dart';
@@ -224,10 +225,19 @@ class _StadiumDashboardPageState extends State<StadiumDashboardPage> {
                             const SizedBox(width: 8),
                             Expanded(
                               child: _buildActionButton(
-                                icon: Icons.chat_bubble_outline,
-                                label: 'Messages',
+                                icon: Icons.photo_library_outlined,
+                                label: 'الصور',
                                 color: const Color(0xFF66BB6A),
-                                onTap: () => _showChat(stadiumId),
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => StadiumPhotosPage(
+                                      stadiumId: stadiumId,
+                                      stadiumName: (stadium['name'] ?? 'ملعب')
+                                          .toString(),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -301,84 +311,6 @@ class _StadiumDashboardPageState extends State<StadiumDashboardPage> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  void _showChat(String stadiumId) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: SizedBox(
-          width: double.maxFinite,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF1E1E1E),
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Icon(Icons.chat_bubble, color: Color(0xFF66BB6A)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Messages',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close, color: Color(0xFF808080)),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.chat_bubble_outline,
-                      size: 48,
-                      color: Color(0xFF404040),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Chat feature coming soon',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Connect with your teams directly',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: const Color(0xFF808080),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton(
-                      onPressed: () => Navigator.pop(context),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF43A047),
-                      ),
-                      child: const Text(
-                        'OK',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

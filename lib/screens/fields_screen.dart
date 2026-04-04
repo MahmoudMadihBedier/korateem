@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import '../services/field_service.dart';
 import 'booking_screen.dart';
@@ -14,6 +16,23 @@ class _FieldsScreenState extends State<FieldsScreen> {
   final searchController = TextEditingController();
   String _searchQuery = '';
   bool _isGridView = false;
+
+  ImageProvider _photoProvider(String value) {
+    final v = value.trim();
+    if (v.isEmpty) return const AssetImage('assets/images/studim.jpeg');
+    if (v.startsWith('http://') || v.startsWith('https://')) {
+      return NetworkImage(v);
+    }
+    try {
+      final cleaned = v.startsWith('data:image')
+          ? v.substring(v.indexOf('base64,') + 'base64,'.length)
+          : v;
+      final bytes = base64Decode(cleaned);
+      return MemoryImage(bytes);
+    } catch (_) {
+      return const AssetImage('assets/images/studim.jpeg');
+    }
+  }
 
   List<String> _extractPhotoUrls(Map<String, dynamic> data) {
     final photos = data['photos'] ?? data['images'];
@@ -158,17 +177,7 @@ class _FieldsScreenState extends State<FieldsScreen> {
                     topRight: Radius.circular(12),
                   ),
                   image: DecorationImage(
-                    image:
-                        () {
-                              final url =
-                                  photos.isNotEmpty ? photos.first : '';
-                              if (url.trim().isNotEmpty)
-                                return NetworkImage(url);
-                              return const AssetImage(
-                                'assets/images/studim.jpeg',
-                              );
-                            }()
-                            as ImageProvider,
+                    image: _photoProvider(photos.isNotEmpty ? photos.first : ''),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -274,24 +283,8 @@ class _FieldsScreenState extends State<FieldsScreen> {
           borderRadius: BorderRadius.circular(8),
           child: () {
             final url = photos.isNotEmpty ? photos.first : '';
-            if (url.trim().isNotEmpty) {
-              return Image.network(
-                url,
-                width: 80,
-                height: 80,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) {
-                  return Image.asset(
-                    'assets/images/studim.jpeg',
-                    width: 80,
-                    height: 80,
-                    fit: BoxFit.cover,
-                  );
-                },
-              );
-            }
-            return Image.asset(
-              'assets/images/studim.jpeg',
+            return Image(
+              image: _photoProvider(url),
               width: 80,
               height: 80,
               fit: BoxFit.cover,
@@ -379,28 +372,23 @@ class _FieldsScreenState extends State<FieldsScreen> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12),
-                  child: () {
-                    final url = photos.isNotEmpty ? photos.first : '';
-                    if (url.trim().isNotEmpty) {
-                      return Image.network(
-                        url,
-                        height: 200,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Image.asset(
+                  child: SizedBox(
+                    height: 200,
+                    child: photos.isEmpty
+                        ? Image.asset(
                             'assets/images/studim.jpeg',
                             height: 200,
                             fit: BoxFit.cover,
-                          );
-                        },
-                      );
-                    }
-                    return Image.asset(
-                      'assets/images/studim.jpeg',
-                      height: 200,
-                      fit: BoxFit.cover,
-                    );
-                  }(),
+                          )
+                        : PageView.builder(
+                            itemCount: photos.length,
+                            itemBuilder: (context, index) => Image(
+                              image: _photoProvider(photos[index]),
+                              height: 200,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                  ),
                 ),
                 SizedBox(height: 16),
                 Text(
