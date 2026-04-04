@@ -111,7 +111,10 @@ class _CommentsSheetState extends State<CommentsSheet> {
                         itemCount: comments.length,
                         separatorBuilder: (_, _) => const SizedBox(height: 10),
                         itemBuilder: (context, index) {
-                          return CommentTile(comment: comments[index]);
+                          return AnimatedListItem(
+                            delay: Duration(milliseconds: 18 * (index.clamp(0, 18))),
+                            child: CommentTile(comment: comments[index]),
+                          );
                         },
                       );
                     },

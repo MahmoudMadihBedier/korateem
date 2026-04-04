@@ -167,7 +167,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
       value: _controller,
       child: Scaffold(
         backgroundColor: const Color(0xFF121212),
-        appBar: ModernAppBar(title: 'Social Feed'),
+        appBar: const ModernAppBar(title: 'Social Feed', glassy: true),
         body: StreamBuilder<List<PostEntity>>(
           stream: _controller.watchFeed(),
           builder: (context, snapshot) {
@@ -205,7 +205,9 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                 final timeLabel = _timeFormatter.formatEnglish(post.createdAt);
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: ModernCard(
+                  child: AnimatedListItem(
+                    delay: Duration(milliseconds: 24 * (index.clamp(0, 12))),
+                    child: ModernCard.glass(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -307,6 +309,7 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
                         ),
                       ],
                     ),
+                  ),
                   ),
                 );
               },

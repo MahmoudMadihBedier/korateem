@@ -1,11 +1,60 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
+
+class GlassContainer extends StatelessWidget {
+  final Widget child;
+  final BorderRadius borderRadius;
+  final EdgeInsets padding;
+  final double blurSigma;
+  final double opacity;
+
+  const GlassContainer({
+    super.key,
+    required this.child,
+    this.borderRadius = const BorderRadius.all(Radius.circular(16)),
+    this.padding = const EdgeInsets.all(16),
+    this.blurSigma = 14,
+    this.opacity = 0.14,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: borderRadius,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: borderRadius,
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withValues(alpha: opacity),
+                Colors.white.withValues(alpha: opacity * 0.55),
+              ],
+            ),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.12),
+              width: 1,
+            ),
+          ),
+          child: Padding(padding: padding, child: child),
+        ),
+      ),
+    );
+  }
+}
 
 /// Reusable card component matching modern dark theme
-class ModernCard extends StatelessWidget {
+class ModernCard extends StatefulWidget {
   final Widget child;
   final EdgeInsets padding;
   final VoidCallback? onTap;
   final Color? backgroundColor;
+  final bool glassy;
+  final double glassBlurSigma;
+  final double glassOpacity;
 
   const ModernCard({
     Key? key,
@@ -13,19 +62,115 @@ class ModernCard extends StatelessWidget {
     this.padding = const EdgeInsets.all(16),
     this.onTap,
     this.backgroundColor,
+    this.glassy = false,
+    this.glassBlurSigma = 14,
+    this.glassOpacity = 0.14,
   }) : super(key: key);
+
+  const ModernCard.glass({
+    Key? key,
+    required this.child,
+    this.padding = const EdgeInsets.all(16),
+    this.onTap,
+    this.backgroundColor,
+    this.glassBlurSigma = 14,
+    this.glassOpacity = 0.14,
+  })  : glassy = true,
+        super(key: key);
+
+  @override
+  State<ModernCard> createState() => _ModernCardState();
+}
+
+class _ModernCardState extends State<ModernCard> {
+  bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      color: backgroundColor ?? Color(0xFF2A2A2A),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 4,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(padding: padding, child: child),
+    final borderRadius = BorderRadius.circular(16);
+    final cardColor = widget.backgroundColor ?? const Color(0xFF2A2A2A);
+
+    final content = widget.glassy
+        ? GlassContainer(
+            borderRadius: borderRadius,
+            padding: widget.padding,
+            blurSigma: widget.glassBlurSigma,
+            opacity: widget.glassOpacity,
+            child: widget.child,
+          )
+        : ClipRRect(
+            borderRadius: borderRadius,
+            child: ColoredBox(
+              color: cardColor,
+              child: Padding(padding: widget.padding, child: widget.child),
+            ),
+          );
+
+    return AnimatedScale(
+      scale: _pressed ? 0.985 : 1,
+      duration: const Duration(milliseconds: 120),
+      curve: Curves.easeOut,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: borderRadius,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.25),
+              blurRadius: 14,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.onTap,
+            onHighlightChanged: (v) => setState(() => _pressed = v),
+            borderRadius: borderRadius,
+            splashColor: Theme.of(context)
+                .colorScheme
+                .primary
+                .withValues(alpha: 0.12),
+            highlightColor: Colors.white.withValues(alpha: 0.03),
+            child: content,
+          ),
+        ),
       ),
+    );
+  }
+}
+
+class AnimatedListItem extends StatelessWidget {
+  final Widget child;
+  final Duration delay;
+  final Duration duration;
+
+  const AnimatedListItem({
+    super.key,
+    required this.child,
+    this.delay = Duration.zero,
+    this.duration = const Duration(milliseconds: 420),
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: duration + delay,
+      curve: Curves.easeOutCubic,
+      builder: (context, value, _) {
+        final totalMs = (duration + delay).inMilliseconds;
+        final shift = totalMs == 0 ? 0.0 : delay.inMilliseconds / totalMs;
+        final denom = (1 - shift).clamp(0.0001, 1.0);
+        final t = ((value - shift) / denom).clamp(0.0, 1.0);
+        return Opacity(
+          opacity: t,
+          child: Transform.translate(
+            offset: Offset(0, (1 - t) * 10),
+            child: child,
+          ),
+        );
+      },
     );
   }
 }
@@ -57,7 +202,7 @@ class PostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ModernCard(
+    return ModernCard.glass(
       padding: EdgeInsets.zero,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -180,7 +325,7 @@ class StadiumCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ModernCard(
+    return ModernCard.glass(
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -271,7 +416,7 @@ class UserCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ModernCard(
+    return ModernCard.glass(
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -357,12 +502,14 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final bool showNotification;
   final VoidCallback? onNotificationTap;
+  final bool glassy;
 
   const ModernAppBar({
     Key? key,
     required this.title,
     this.showNotification = true,
     this.onNotificationTap,
+    this.glassy = false,
   }) : super(key: key);
 
   @override
@@ -372,9 +519,28 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       title: Text(title),
-      backgroundColor: Color(0xFF1E1E1E),
+      backgroundColor: glassy ? Colors.transparent : const Color(0xFF1E1E1E),
       elevation: 0,
+      scrolledUnderElevation: 0,
       centerTitle: true,
+      flexibleSpace: glassy
+          ? ClipRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.22),
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.06),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : null,
       actions: showNotification
           ? [
               Padding(
