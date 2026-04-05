@@ -52,7 +52,7 @@ class _CommentBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasImage = imageUrl.trim().isNotEmpty;
-    return ModernCard(
+    return ModernCard.glass(
       padding: const EdgeInsets.all(12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,4 +89,3 @@ class _CommentBody extends StatelessWidget {
     );
   }
 }
-
