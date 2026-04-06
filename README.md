@@ -1,65 +1,104 @@
+<!-- Improved README – Screenshot Gallery & Video Demo -->
+<h1 align="center">
+  <pre>
+██╗  ██╗ ██████╗ ██████╗  █████╗ ████████╗███████╗███████╗███╗   ███╗
+██║ ██╔╝██╔═══██╗██╔══██╗██╔══██╗╚══██╔══╝██╔════╝██╔════╝████╗ ████║
+█████╔╝ ██║   ██║██████╔╝███████║   ██║   █████╗  █████╗  ██╔████╔██║
+██╔═██╗ ██║   ██║██╔══██╗██╔══██║   ██║   ██╔══╝  ██╔══╝  ██║╚██╔╝██║
+██║  ██╗╚██████╔╝██║  ██║██║  ██║   ██║   ███████╗███████╗██║ ╚═╝ ██║
+╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚══════╝╚═╝     ╚═╝
+  </pre>
+  <strong>Korateem – Cross‑platform Flutter App</strong>
+</h1>
 
-# Korateem
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#screenshots">Screenshots</a> •
+  <a href="#demo">Demo</a> •
+  <a href="#getting-started">Getting Started</a> •
+  <a href="#license">License</a>
+</p>
 
-Korateem is a modern, cross-platform mobile app built with Flutter, designed to deliver a seamless and intuitive experience across Android, iOS, web, Windows, macOS, and Linux.
-
-## Features
-
-- **Cross-platform support:** Android, iOS, web, Windows, macOS, and Linux.
-- **Firebase integration:** Real-time database, authentication, and cloud storage.
-- **Modern, responsive UI:** Consistent and beautiful design across all devices.
-- **Modular architecture:** Clean, maintainable, and scalable codebase.
-- **Google Maps integration:** Location-based features for enhanced user experience.
-- **Image picker:** Users can upload or select images from their device.
-- **Secure authentication:** Robust user sign-in and management with Firebase Auth.
-- **Multi-language support:** Documentation in English and Arabic.
-- **Automated testing:** Widget and smoke tests for reliability.
-
-## Screenshots
-
-Below are some screenshots and a demo video of the app in action:
-
-![Screenshot 1](assets/screenshots/photo_5954197417278246090_y.jpg)
-![Screenshot 2](assets/screenshots/photo_5954197417278246091_y.jpg)
-![Screenshot 3](assets/screenshots/photo_5954197417278246092_y.jpg)
-![Screenshot 4](assets/screenshots/photo_5954197417278246093_y.jpg)
-![Screenshot 5](assets/screenshots/photo_5954197417278246094_y.jpg)
-![Screenshot 6](assets/screenshots/photo_5954197417278246095_y.jpg)
-![Screenshot 7](assets/screenshots/photo_5954197417278246096_y.jpg)
-![Screenshot 8](assets/screenshots/photo_5954197417278246097_y.jpg)
-![Screenshot 9](assets/screenshots/photo_5954197417278246098_y.jpg)
-![Screenshot 10](assets/screenshots/photo_5954197417278246099_y.jpg)
-![Screenshot 11](assets/screenshots/photo_5954197417278246100_y.jpg)
-![Screenshot 12](assets/screenshots/photo_5954197417278246101_y.jpg)
-![Screenshot 13](assets/screenshots/photo_5954197417278246102_y.jpg)
-![Screenshot 14](assets/screenshots/photo_5954197417278246103_y.jpg)
-![Screenshot 15](assets/screenshots/photo_5954197417278246104_y.jpg)
-
-## Demo Video
-
-[▶ Watch Demo Video](assets/screenshots/202604061415%20(2).mp4)
+<p align="center">
+  <img src="https://img.shields.io/badge/Flutter-3.22+-02569B?logo=flutter" alt="Flutter">
+  <img src="https://img.shields.io/badge/Firebase-10.0+-FFCA28?logo=firebase" alt="Firebase">
+  <img src="https://img.shields.io/badge/Platforms-Android|iOS|Web|Desktop-brightgreen" alt="Platforms">
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License">
+  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs">
+</p>
 
 ---
 
-## Getting Started
+## ✨ Features
 
-1. Clone the repository:
-	```bash
-	git clone https://github.com/your-username/korateem.git
-	```
-2. Install dependencies:
-	```bash
-	flutter pub get
-	```
-3. Run the app:
-	```bash
-	flutter run
-	```
-
-## License
-
-This project is open source and available under the [MIT License](LICENSE).
+- **Cross‑platform** – Android, iOS, web, Windows, macOS, Linux  
+- **Firebase integration** – Realtime Database, Auth, Cloud Storage  
+- **Modern responsive UI** – Consistent & beautiful across all devices  
+- **Modular architecture** – Clean, maintainable, scalable codebase  
+- **Google Maps** – Location‑based features  
+- **Image picker** – Upload or select images from device  
+- **Secure authentication** – Firebase Auth (email, Google, etc.)  
+- **Multi‑language** – English & Arabic documentation  
+- **Automated testing** – Widget & smoke tests  
 
 ---
 
-Feel free to contribute or reach out for collaboration!
+## 📸 Screenshots
+
+<div align="center">
+  <table>
+    <tr>
+      <td><img src="assets/screenshots/photo_5954197417278246090_y.jpg" width="200" alt="Screenshot 1"/></td>
+      <td><img src="assets/screenshots/photo_5954197417278246091_y.jpg" width="200" alt="Screenshot 2"/></td>
+      <td><img src="assets/screenshots/photo_5954197417278246092_y.jpg" width="200" alt="Screenshot 3"/></td>
+      <td><img src="assets/screenshots/photo_5954197417278246093_y.jpg" width="200" alt="Screenshot 4"/></td>
+    </tr>
+    <tr>
+      <td><img src="assets/screenshots/photo_5954197417278246094_y.jpg" width="200" alt="Screenshot 5"/></td>
+      <td><img src="assets/screenshots/photo_5954197417278246095_y.jpg" width="200" alt="Screenshot 6"/></td>
+      <td><img src="assets/screenshots/photo_5954197417278246096_y.jpg" width="200" alt="Screenshot 7"/></td>
+      <td><img src="assets/screenshots/photo_5954197417278246097_y.jpg" width="200" alt="Screenshot 8"/></td>
+    </tr>
+    <tr>
+      <td><img src="assets/screenshots/photo_5954197417278246098_y.jpg" width="200" alt="Screenshot 9"/></td>
+      <td><img src="assets/screenshots/photo_5954197417278246099_y.jpg" width="200" alt="Screenshot 10"/></td>
+      <td><img src="assets/screenshots/photo_5954197417278246100_y.jpg" width="200" alt="Screenshot 11"/></td>
+      <td><img src="assets/screenshots/photo_5954197417278246101_y.jpg" width="200" alt="Screenshot 12"/></td>
+    </tr>
+    <tr>
+      <td><img src="assets/screenshots/photo_5954197417278246102_y.jpg" width="200" alt="Screenshot 13"/></td>
+      <td><img src="assets/screenshots/photo_5954197417278246103_y.jpg" width="200" alt="Screenshot 14"/></td>
+      <td><img src="assets/screenshots/photo_5954197417278246104_y.jpg" width="200" alt="Screenshot 15"/></td>
+      <td></td>
+    </tr>
+  </table>
+</div>
+
+---
+
+## 🎬 Demo Video
+
+<p align="center">
+  <a href="assets/screenshots/202604061415%20(2).mp4">
+    <img src="https://img.shields.io/badge/▶️_Watch_Demo_Video-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="Demo Video">
+  </a>
+</p>
+
+> **Note:** Click the badge above to view or download the demo video.  
+> If the video doesn't play in your browser, please download it locally.
+
+---
+
+## 🚀 Getting Started
+
+### Prerequisites
+- [Flutter SDK](https://flutter.dev/docs/get-started/install) (>=3.22.0)
+- [Firebase project](https://console.firebase.google.com/) with Authentication, Realtime Database & Storage enabled
+- Android Studio / Xcode (for mobile) or any code editor
+
+### Installation
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/MahmoudMadihBedier/korateem.git
+   cd korateem
