@@ -6,6 +6,16 @@ final ThemeData korateemTheme = ThemeData(
   brightness: Brightness.dark,
   useMaterial3: true,
 
+  pageTransitionsTheme: const PageTransitionsTheme(
+    builders: {
+      TargetPlatform.android: _KorateemPageTransitionsBuilder(),
+      TargetPlatform.iOS: _KorateemPageTransitionsBuilder(),
+      TargetPlatform.macOS: _KorateemPageTransitionsBuilder(),
+      TargetPlatform.windows: _KorateemPageTransitionsBuilder(),
+      TargetPlatform.linux: _KorateemPageTransitionsBuilder(),
+    },
+  ),
+
   // Color scheme - Modern dark with vibrant green
   colorScheme: ColorScheme.dark(
     primary: Color(0xFF43A047), // Vibrant green
@@ -223,3 +233,30 @@ final ThemeData korateemTheme = ThemeData(
   // Progress indicator theme
   progressIndicatorTheme: ProgressIndicatorThemeData(color: Color(0xFF43A047)),
 );
+
+class _KorateemPageTransitionsBuilder extends PageTransitionsBuilder {
+  const _KorateemPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    if (route.isFirst) return child;
+
+    final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+    final fade = curved;
+    final slide = Tween<Offset>(
+      begin: const Offset(0, 0.04),
+      end: Offset.zero,
+    ).animate(curved);
+
+    return FadeTransition(
+      opacity: fade,
+      child: SlideTransition(position: slide, child: child),
+    );
+  }
+}
