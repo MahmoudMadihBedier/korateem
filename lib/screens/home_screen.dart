@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:korateem/screens/fields_screen.dart';
+import 'package:korateem/features/stadium/presentation/pages/fields_page.dart';
 import 'package:korateem/screens/owner_admin_page.dart';
 import 'package:korateem/screens/social_feed_page.dart';
 import 'package:korateem/screens/stadium_dashboard_page.dart';
@@ -57,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
               feedTabIndex: 3,
               profileTabIndex: 4,
             ),
-            const FieldsScreen(),
+            const FieldsPage(),
             TeamScreen(currentUserId: uid),
             SocialFeedPage(userId: uid),
             UserProfileScreen(uid: uid),

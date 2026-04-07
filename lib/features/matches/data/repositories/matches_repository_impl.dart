@@ -1,24 +1,25 @@
 import '../../domain/entities/match_entity.dart';
 import '../../domain/repositories/matches_repository.dart';
 import '../datasources/matches_remote_datasource.dart';
+import '../datasources/matches_local_datasource.dart';
+import 'package:intl/intl.dart';
 
 class MatchesRepositoryImpl implements IMatchesRepository {
   final MatchesRemoteDataSource remoteDataSource;
+  final MatchesLocalDataSource localDataSource;
 
   static const egyptianLeagueId = 233;
   static const top5LeagueIds = [39, 140, 78, 135, 61];
   static const globalChampIds = [2, 12, 3, 5];
 
-  MatchesRepositoryImpl({required this.remoteDataSource});
+  MatchesRepositoryImpl({
+    required this.remoteDataSource,
+    required this.localDataSource,
+  });
 
   @override
   Future<List<MatchEntity>> getAllMatches() async {
-    try {
-      final matches = await remoteDataSource.getAllMatches();
-      return _sortMatches(matches);
-    } catch (e) {
-      throw Exception('Repository error: $e');
-    }
+    return getMatchesByDate(DateTime.now());
   }
 
   @override
@@ -26,11 +27,18 @@ class MatchesRepositoryImpl implements IMatchesRepository {
     int leagueId, {
     DateTime? date,
   }) async {
+    final cacheKey = _leagueCacheKey(leagueId, date);
     try {
+      final cached = await localDataSource.getCachedMatches(cacheKey);
+      if (cached.isNotEmpty) return _sortMatches(cached);
+
       final matches =
           await remoteDataSource.getMatchesByLeague(leagueId, date: date);
+      await localDataSource.cacheMatches(cacheKey, matches);
       return _sortMatches(matches);
     } catch (e) {
+      final cached = await localDataSource.getCachedMatches(cacheKey);
+      if (cached.isNotEmpty) return _sortMatches(cached);
       throw Exception('Repository error: $e');
     }
   }
@@ -38,9 +46,17 @@ class MatchesRepositoryImpl implements IMatchesRepository {
   @override
   Future<List<MatchEntity>> getMatchesByDate(DateTime date) async {
     try {
+      final dateStr = DateFormat('yyyyMMdd').format(date);
+      final cached = await localDataSource.getCachedMatches('date_$dateStr');
+      if (cached.isNotEmpty) return _sortMatches(cached);
+
       final matches = await remoteDataSource.getMatchesByDate(date);
+      await localDataSource.cacheMatches('date_$dateStr', matches);
       return _sortMatches(matches);
     } catch (e) {
+      final dateStr = DateFormat('yyyyMMdd').format(date);
+      final cached = await localDataSource.getCachedMatches('date_$dateStr');
+      if (cached.isNotEmpty) return _sortMatches(cached);
       throw Exception('Repository error: $e');
     }
   }
@@ -65,6 +81,11 @@ class MatchesRepositoryImpl implements IMatchesRepository {
     if (top5LeagueIds.contains(leagueId)) return 1;
     if (globalChampIds.contains(leagueId)) return 2;
     return 3;
+  }
+
+  String _leagueCacheKey(int leagueId, DateTime? date) {
+    final datePart = date != null ? DateFormat('yyyyMMdd').format(date) : 'next';
+    return 'league_${leagueId}_$datePart';
   }
 
   @override
