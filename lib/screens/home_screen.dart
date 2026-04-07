@@ -292,6 +292,12 @@ class _HomeTabPageState extends State<HomeTabPage>
                                 ),
                               ),
                               _HomeAction(
+                                icon: Icons.calendar_month_outlined,
+                                title: 'جدول المباريات',
+                                subtitle: 'تابع كل البطولات',
+                                onTap: () => Navigator.pushNamed(context, '/matches'),
+                              ),
+                              _HomeAction(
                                 icon: Icons.edit,
                                 title: 'تعديل الملف',
                                 subtitle: 'حدّث بياناتك',
@@ -310,6 +316,12 @@ class _HomeTabPageState extends State<HomeTabPage>
                                 onTap: () => widget.onNavigateTab(
                                   widget.fieldsTabIndex ?? widget.stadiumsTabIndex,
                                 ),
+                              ),
+                              _HomeAction(
+                                icon: Icons.calendar_month_outlined,
+                                title: 'جدول المباريات',
+                                subtitle: 'تابع كل البطولات',
+                                onTap: () => Navigator.pushNamed(context, '/matches'),
                               ),
                               _HomeAction(
                                 icon: Icons.group,

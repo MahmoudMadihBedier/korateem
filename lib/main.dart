@@ -18,6 +18,11 @@ import 'screens/user_rating_page.dart';
 import 'screens/social_feed_page.dart';
 import 'screens/stadium_profile_page.dart';
 import 'screens/stadium_dashboard_page.dart';
+import 'package:http/http.dart' as http;
+import 'features/matches/domain/repositories/matches_repository.dart';
+import 'features/matches/data/repositories/matches_repository_impl.dart';
+import 'features/matches/data/datasources/matches_remote_datasource.dart';
+import 'features/matches/presentation/pages/matches_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +33,15 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthService()),
         Provider<IPostRepository>(create: (_) => PostRepository()),
         Provider<IUserRepository>(create: (_) => UserRepository()),
+        Provider<IMatchesRepository>(
+          create: (_) => MatchesRepositoryImpl(
+            remoteDataSource: MatchesRemoteDataSourceImpl(
+              client: http.Client(),
+              // API Key can be added here or via environment variables
+              apiKey: '',
+            ),
+          ),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -131,6 +145,8 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(
               builder: (_) => StadiumDashboardPage(ownerId: ownerId),
             );
+          case '/matches':
+            return MaterialPageRoute(builder: (_) => const MatchesPage());
           default:
             return null;
         }
