@@ -18,9 +18,9 @@ class MatchesRepositoryImpl implements IMatchesRepository {
   }
 
   @override
-  Future<List<MatchEntity>> getMatchesByLeague(int leagueId) async {
+  Future<List<MatchEntity>> getMatchesByLeague(int leagueId, {DateTime? date}) async {
     try {
-      final matches = await remoteDataSource.getMatchesByLeague(leagueId);
+      final matches = await remoteDataSource.getMatchesByLeague(leagueId, date: date);
       return matches;
     } catch (e) {
       throw Exception('Repository error: $e');
@@ -44,6 +44,24 @@ class MatchesRepositoryImpl implements IMatchesRepository {
       return events;
     } catch (e) {
       throw Exception('Repository error: $e');
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getLeagues() async {
+    try {
+      return await remoteDataSource.getLeagues();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getCountries() async {
+    try {
+      return await remoteDataSource.getCountries();
+    } catch (e) {
+      return [];
     }
   }
 }

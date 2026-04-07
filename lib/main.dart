@@ -23,6 +23,7 @@ import 'features/matches/domain/repositories/matches_repository.dart';
 import 'features/matches/data/repositories/matches_repository_impl.dart';
 import 'features/matches/data/datasources/matches_remote_datasource.dart';
 import 'features/matches/presentation/pages/matches_page.dart';
+import 'core/config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,8 +38,7 @@ void main() async {
           create: (_) => MatchesRepositoryImpl(
             remoteDataSource: MatchesRemoteDataSourceImpl(
               client: http.Client(),
-              // API Key can be added here or via environment variables
-              apiKey: '',
+              apiKey: AppConfig.footballApiKey,
             ),
           ),
         ),
