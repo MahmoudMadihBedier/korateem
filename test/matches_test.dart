@@ -24,8 +24,19 @@ class MockMatchesRepository implements IMatchesRepository {
   }
 
   @override
-  Future<List<MatchEntity>> getMatchesByLeague(int leagueId) async {
-    return [];
+  Future<List<MatchEntity>> getMatchesByLeague(int leagueId, {DateTime? date}) async {
+    return [
+      MatchEntity(
+        id: '1',
+        homeTeam: 'Team A',
+        awayTeam: 'Team B',
+        homeTeamLogo: '',
+        awayTeamLogo: '',
+        utcDate: (date ?? DateTime.now()).copyWith(hour: 15),
+        status: 'NS',
+        leagueName: 'League $leagueId',
+      ),
+    ];
   }
 
   @override
@@ -46,6 +57,16 @@ class MockMatchesRepository implements IMatchesRepository {
 
   @override
   Future<List<MatchEventEntity>> getMatchEvents(String fixtureId) async {
+    return [];
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getLeagues() async {
+    return [];
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getCountries() async {
     return [];
   }
 }

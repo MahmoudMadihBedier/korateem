@@ -2,9 +2,11 @@ import '../../domain/entities/match_entity.dart';
 
 abstract class IMatchesRepository {
   Future<List<MatchEntity>> getAllMatches();
-  Future<List<MatchEntity>> getMatchesByLeague(int leagueId);
+  Future<List<MatchEntity>> getMatchesByLeague(int leagueId, {DateTime? date});
   Future<List<MatchEntity>> getMatchesByDate(DateTime date);
   Future<List<MatchEventEntity>> getMatchEvents(String fixtureId);
+  Future<List<Map<String, dynamic>>> getLeagues();
+  Future<List<Map<String, dynamic>>> getCountries();
 }
 
 class MatchEventEntity {

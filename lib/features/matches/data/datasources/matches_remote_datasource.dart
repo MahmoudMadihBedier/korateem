@@ -5,10 +5,12 @@ import '../models/match_model.dart';
 import '../../domain/repositories/matches_repository.dart';
 
 abstract class MatchesRemoteDataSource {
-  Future<List<MatchModel>> getMatchesByLeague(int leagueId);
+  Future<List<MatchModel>> getMatchesByLeague(int leagueId, {DateTime? date});
   Future<List<MatchModel>> getMatchesByDate(DateTime date);
   Future<List<MatchModel>> getAllMatches();
   Future<List<MatchEventEntity>> getMatchEvents(String fixtureId);
+  Future<List<Map<String, dynamic>>> getLeagues();
+  Future<List<Map<String, dynamic>>> getCountries();
 }
 
 class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
@@ -21,13 +23,18 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
   MatchesRemoteDataSourceImpl({required this.client, this.apiKey});
 
   @override
-  Future<List<MatchModel>> getMatchesByLeague(int leagueId) async {
+  Future<List<MatchModel>> getMatchesByLeague(int leagueId, {DateTime? date}) async {
     if (apiKey == null || apiKey!.isEmpty) {
-      return _getMockMatches(leagueId: leagueId);
+      return _getMockMatches(leagueId: leagueId, date: date);
     }
 
+    final dateStr = date != null ? DateFormat('yyyy-MM-dd').format(date) : null;
+    final url = dateStr != null
+        ? '$baseUrl/fixtures?league=$leagueId&date=$dateStr'
+        : '$baseUrl/fixtures?league=$leagueId&next=10';
+
     final response = await client.get(
-      Uri.parse('$baseUrl/fixtures?league=$leagueId&next=10'),
+      Uri.parse(url),
       headers: {
         'x-rapidapi-key': apiKey!,
         'x-rapidapi-host': 'v3.football.api-sports.io',
@@ -51,26 +58,22 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
       return _getMockMatches(date: date);
     }
 
-    // Only get major leagues for the date to avoid too many requests
-    final leagues = [39, 140, 233, 2, 12];
-    List<MatchModel> matches = [];
+    // Fetch all matches for the given date in a single API call
+    final response = await client.get(
+      Uri.parse('$baseUrl/fixtures?date=$dateStr'),
+      headers: {
+        'x-rapidapi-key': apiKey!,
+        'x-rapidapi-host': 'v3.football.api-sports.io',
+      },
+    );
 
-    for (var leagueId in leagues) {
-      final response = await client.get(
-        Uri.parse('$baseUrl/fixtures?date=$dateStr&league=$leagueId'),
-        headers: {
-          'x-rapidapi-key': apiKey!,
-          'x-rapidapi-host': 'v3.football.api-sports.io',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        final List fixtures = data['response'] ?? [];
-        matches.addAll(fixtures.map((f) => MatchModel.fromApiFootball(f)));
-      }
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      final List fixtures = data['response'] ?? [];
+      return fixtures.map((f) => MatchModel.fromApiFootball(f)).toList();
+    } else {
+      throw Exception('Failed to load matches for date $dateStr');
     }
-    return matches;
   }
 
   @override
@@ -105,6 +108,54 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
     } else {
       throw Exception('Failed to load events');
     }
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getLeagues() async {
+    if (apiKey == null || apiKey!.isEmpty) return [];
+
+    final response = await client.get(
+      Uri.parse('$baseUrl/leagues'),
+      headers: {
+        'x-rapidapi-key': apiKey!,
+        'x-rapidapi-host': 'v3.football.api-sports.io',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      final List leagues = data['response'] ?? [];
+      return leagues.map((l) => {
+        'id': l['league']['id'],
+        'name': l['league']['name'],
+        'country': l['country']['name'],
+      }).toList();
+    }
+    return [];
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getCountries() async {
+    if (apiKey == null || apiKey!.isEmpty) return [];
+
+    final response = await client.get(
+      Uri.parse('$baseUrl/countries'),
+      headers: {
+        'x-rapidapi-key': apiKey!,
+        'x-rapidapi-host': 'v3.football.api-sports.io',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      final List countries = data['response'] ?? [];
+      return countries.map((c) => {
+        'name': c['name'],
+        'code': c['code'],
+        'flag': c['flag'],
+      }).toList();
+    }
+    return [];
   }
 
   List<MatchModel> _getMockMatches({int? leagueId, DateTime? date}) {
