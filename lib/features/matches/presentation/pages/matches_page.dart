@@ -38,8 +38,14 @@ class _MatchesPageState extends State<MatchesPage> with SingleTickerProviderStat
 
   Future<void> _loadFilterOptions() async {
     final repository = Provider.of<IMatchesRepository>(context, listen: false);
-    _countries = await repository.getCountries();
-    _leagues = await repository.getLeagues();
+    final countries = await repository.getCountries();
+    final leagues = await repository.getLeagues();
+    if (mounted) {
+      setState(() {
+        _countries = countries;
+        _leagues = leagues;
+      });
+    }
   }
 
   @override
@@ -110,7 +116,7 @@ class _MatchesPageState extends State<MatchesPage> with SingleTickerProviderStat
       child: TabBar(
         controller: _dateTabController,
         indicatorColor: Theme.of(context).colorScheme.primary,
-        indicatorPadding: const EdgeInsets.symmetric(horizontal: 16),
+        indicatorPadding: EdgeInsets.zero, // Fixed crash
         labelColor: Theme.of(context).colorScheme.primary,
         unselectedLabelColor: Colors.grey,
         tabs: _dates.map((dateItem) {

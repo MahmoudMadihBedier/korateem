@@ -8,6 +8,7 @@ class MatchEntity {
   final String status;
   final String? score;
   final String leagueName;
+  final int leagueId;
   final String? group;
 
   MatchEntity({
@@ -20,6 +21,7 @@ class MatchEntity {
     required this.status,
     this.score,
     required this.leagueName,
+    required this.leagueId,
     this.group,
   });
 }
