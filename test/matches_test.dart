@@ -19,6 +19,7 @@ class MockMatchesRepository implements IMatchesRepository {
         utcDate: DateTime.now().add(const Duration(hours: 1)),
         status: 'NS',
         leagueName: 'Test League',
+        leagueId: 1,
       ),
     ];
   }
@@ -35,6 +36,7 @@ class MockMatchesRepository implements IMatchesRepository {
         utcDate: (date ?? DateTime.now()).copyWith(hour: 15),
         status: 'NS',
         leagueName: 'League $leagueId',
+        leagueId: leagueId,
       ),
     ];
   }
@@ -51,12 +53,18 @@ class MockMatchesRepository implements IMatchesRepository {
         utcDate: date.copyWith(hour: 15),
         status: 'NS',
         leagueName: 'Test League',
+        leagueId: 1,
       ),
     ];
   }
 
   @override
   Future<List<MatchEventEntity>> getMatchEvents(String fixtureId) async {
+    return [];
+  }
+
+  @override
+  Future<List<MatchStatEntity>> getMatchStats(String fixtureId) async {
     return [];
   }
 
