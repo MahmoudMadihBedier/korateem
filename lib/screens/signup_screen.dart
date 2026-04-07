@@ -3,6 +3,7 @@ import 'package:korateem/ui/modern_components.dart';
 import 'package:provider/provider.dart';
 
 import '../services/auth_service.dart';
+import '../core/utils/validators.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -18,6 +19,7 @@ class _SignupScreenState extends State<SignupScreen>
   final phoneController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   bool _isLoading = false;
   bool _passwordsVisible = false;
@@ -144,11 +146,13 @@ class _SignupScreenState extends State<SignupScreen>
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     ModernCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            'بيانات الحساب',
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              'بيانات الحساب',
                             style: Theme.of(context).textTheme.titleLarge,
                             textAlign: TextAlign.right,
                           ),
@@ -159,56 +163,64 @@ class _SignupScreenState extends State<SignupScreen>
                             textAlign: TextAlign.right,
                           ),
                           const SizedBox(height: 16),
-                          _AuthTextField(
-                            controller: nameController,
-                            label: 'الاسم الكامل',
-                            icon: Icons.person_outline,
-                            keyboardType: TextInputType.name,
-                            textInputAction: TextInputAction.next,
-                          ),
-                          const SizedBox(height: 12),
-                          _AuthTextField(
-                            controller: emailController,
-                            label: 'البريد الإلكتروني',
-                            icon: Icons.email_outlined,
-                            keyboardType: TextInputType.emailAddress,
-                            textInputAction: TextInputAction.next,
-                          ),
-                          const SizedBox(height: 12),
-                          _AuthTextField(
-                            controller: phoneController,
-                            label: 'رقم الهاتف',
-                            icon: Icons.phone_outlined,
-                            keyboardType: TextInputType.phone,
-                            textInputAction: TextInputAction.next,
-                          ),
-                          const SizedBox(height: 12),
-                          _AuthTextField(
-                            controller: passwordController,
-                            label: 'كلمة المرور',
-                            icon: Icons.lock_outline,
-                            obscureText: !_passwordsVisible,
-                            textInputAction: TextInputAction.next,
-                            suffixIcon: IconButton(
-                              onPressed: () => setState(
-                                () => _passwordsVisible = !_passwordsVisible,
-                              ),
-                              icon: Icon(
-                                _passwordsVisible
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
+                            _AuthTextField(
+                              controller: nameController,
+                              label: 'الاسم الكامل',
+                              icon: Icons.person_outline,
+                              keyboardType: TextInputType.name,
+                              textInputAction: TextInputAction.next,
+                              validator: (v) => Validators.validateRequired(v, 'الاسم'),
+                            ),
+                            const SizedBox(height: 12),
+                            _AuthTextField(
+                              controller: emailController,
+                              label: 'البريد الإلكتروني',
+                              icon: Icons.email_outlined,
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.next,
+                              validator: Validators.validateEmail,
+                            ),
+                            const SizedBox(height: 12),
+                            _AuthTextField(
+                              controller: phoneController,
+                              label: 'رقم الهاتف',
+                              icon: Icons.phone_outlined,
+                              keyboardType: TextInputType.phone,
+                              textInputAction: TextInputAction.next,
+                              validator: Validators.validatePhone,
+                            ),
+                            const SizedBox(height: 12),
+                            _AuthTextField(
+                              controller: passwordController,
+                              label: 'كلمة المرور',
+                              icon: Icons.lock_outline,
+                              obscureText: !_passwordsVisible,
+                              textInputAction: TextInputAction.next,
+                              validator: Validators.validatePassword,
+                              suffixIcon: IconButton(
+                                onPressed: () => setState(
+                                  () => _passwordsVisible = !_passwordVisible,
+                                ),
+                                icon: Icon(
+                                  _passwordsVisible
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          _AuthTextField(
-                            controller: confirmPasswordController,
-                            label: 'تأكيد كلمة المرور',
-                            icon: Icons.lock_outline,
-                            obscureText: !_passwordsVisible,
-                            textInputAction: TextInputAction.done,
-                            onSubmitted: (_) => _isLoading ? null : _signup(),
-                          ),
+                            const SizedBox(height: 12),
+                            _AuthTextField(
+                              controller: confirmPasswordController,
+                              label: 'تأكيد كلمة المرور',
+                              icon: Icons.lock_outline,
+                              obscureText: !_passwordsVisible,
+                              textInputAction: TextInputAction.done,
+                              onSubmitted: (_) => _isLoading ? null : _signup(),
+                              validator: (v) {
+                                if (v != passwordController.text) return 'كلمات المرور غير متطابقة';
+                                return null;
+                              },
+                            ),
                           const SizedBox(height: 8),
                           Directionality(
                             textDirection: TextDirection.rtl,
@@ -283,42 +295,7 @@ class _SignupScreenState extends State<SignupScreen>
   }
 
   void _signup() async {
-    if (nameController.text.isEmpty) {
-      _showError('الرجاء إدخال الاسم الكامل');
-      return;
-    }
-    if (nameController.text.length < 3) {
-      _showError('الاسم يجب أن يكون 3 أحرف على الأقل');
-      return;
-    }
-    if (emailController.text.isEmpty) {
-      _showError('الرجاء إدخال البريد الإلكتروني');
-      return;
-    }
-    if (!emailController.text.contains('@')) {
-      _showError('البريد الإلكتروني غير صحيح');
-      return;
-    }
-    if (phoneController.text.isEmpty) {
-      _showError('الرجاء إدخال رقم الهاتف');
-      return;
-    }
-    if (phoneController.text.length < 11) {
-      _showError('رقم الهاتف غير صحيح');
-      return;
-    }
-    if (passwordController.text.isEmpty) {
-      _showError('الرجاء إدخال كلمة المرور');
-      return;
-    }
-    if (passwordController.text.length < 6) {
-      _showError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
-      return;
-    }
-    if (passwordController.text != confirmPasswordController.text) {
-      _showError('كلمات المرور غير متطابقة');
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
     if (!_agreedToTerms) {
       _showError('يجب الموافقة على شروط الاستخدام');
       return;
@@ -394,6 +371,7 @@ class _AuthTextField extends StatelessWidget {
   final TextInputAction textInputAction;
   final Widget? suffixIcon;
   final ValueChanged<String>? onSubmitted;
+  final String? Function(String?)? validator;
 
   const _AuthTextField({
     required this.controller,
@@ -404,17 +382,19 @@ class _AuthTextField extends StatelessWidget {
     this.textInputAction = TextInputAction.next,
     this.suffixIcon,
     this.onSubmitted,
+    this.validator,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
       textInputAction: textInputAction,
-      onSubmitted: onSubmitted,
+      onFieldSubmitted: onSubmitted,
       textDirection: TextDirection.rtl,
+      validator: validator,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),

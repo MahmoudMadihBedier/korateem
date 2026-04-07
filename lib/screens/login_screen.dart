@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../services/auth_service.dart';
 import 'signup_screen.dart';
+import '../core/utils/validators.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,6 +17,7 @@ class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   bool _isLoading = false;
   bool _passwordVisible = false;
@@ -141,11 +143,13 @@ class _LoginScreenState extends State<LoginScreen>
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     ModernCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            'مرحباً بعودتك',
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              'مرحباً بعودتك',
                             style: Theme.of(context).textTheme.titleLarge,
                             textAlign: TextAlign.right,
                           ),
@@ -156,32 +160,34 @@ class _LoginScreenState extends State<LoginScreen>
                             textAlign: TextAlign.right,
                           ),
                           const SizedBox(height: 16),
-                          _AuthTextField(
-                            controller: emailController,
-                            label: 'البريد الإلكتروني',
-                            icon: Icons.email_outlined,
-                            keyboardType: TextInputType.emailAddress,
-                            textInputAction: TextInputAction.next,
-                          ),
-                          const SizedBox(height: 12),
-                          _AuthTextField(
-                            controller: passwordController,
-                            label: 'كلمة المرور',
-                            icon: Icons.lock_outline,
-                            obscureText: !_passwordVisible,
-                            textInputAction: TextInputAction.done,
-                            onSubmitted: (_) => _isLoading ? null : _login(),
-                            suffixIcon: IconButton(
-                              onPressed: () => setState(
-                                () => _passwordVisible = !_passwordVisible,
-                              ),
-                              icon: Icon(
-                                _passwordVisible
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
+                            _AuthTextField(
+                              controller: emailController,
+                              label: 'البريد الإلكتروني',
+                              icon: Icons.email_outlined,
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.next,
+                              validator: Validators.validateEmail,
+                            ),
+                            const SizedBox(height: 12),
+                            _AuthTextField(
+                              controller: passwordController,
+                              label: 'كلمة المرور',
+                              icon: Icons.lock_outline,
+                              obscureText: !_passwordVisible,
+                              textInputAction: TextInputAction.done,
+                              onSubmitted: (_) => _isLoading ? null : _login(),
+                              validator: Validators.validatePassword,
+                              suffixIcon: IconButton(
+                                onPressed: () => setState(
+                                  () => _passwordVisible = !_passwordVisible,
+                                ),
+                                icon: Icon(
+                                  _passwordVisible
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                ),
                               ),
                             ),
-                          ),
                           const SizedBox(height: 10),
                           Align(
                             alignment: Alignment.centerRight,
@@ -283,22 +289,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   void _login() async {
-    if (emailController.text.isEmpty) {
-      _showError('الرجاء إدخال البريد الإلكتروني');
-      return;
-    }
-    if (!emailController.text.contains('@')) {
-      _showError('البريد الإلكتروني غير صحيح');
-      return;
-    }
-    if (passwordController.text.isEmpty) {
-      _showError('الرجاء إدخال كلمة المرور');
-      return;
-    }
-    if (passwordController.text.length < 6) {
-      _showError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
     final authService = Provider.of<AuthService>(context, listen: false);
@@ -397,6 +388,7 @@ class _AuthTextField extends StatelessWidget {
   final TextInputAction textInputAction;
   final Widget? suffixIcon;
   final ValueChanged<String>? onSubmitted;
+  final String? Function(String?)? validator;
 
   const _AuthTextField({
     required this.controller,
@@ -407,17 +399,19 @@ class _AuthTextField extends StatelessWidget {
     this.textInputAction = TextInputAction.next,
     this.suffixIcon,
     this.onSubmitted,
+    this.validator,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
       textInputAction: textInputAction,
-      onSubmitted: onSubmitted,
+      onFieldSubmitted: onSubmitted,
       textDirection: TextDirection.rtl,
+      validator: validator,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),

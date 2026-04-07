@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../ui/modern_components.dart';
+import '../core/utils/validators.dart';
 import '../../features/user/data/models/user_model.dart';
 import '../../features/user/data/repositories/user_repository.dart';
 
@@ -17,6 +18,7 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
+  final _formKey = GlobalKey<FormState>();
   UserModel? _user;
   bool _isLoading = false;
 
@@ -55,15 +57,7 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
   }
 
   Future<void> _saveProfile() async {
-    if (_nameController.text.isEmpty || _phoneController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please fill all required fields'),
-          backgroundColor: Color(0xFFCF6679),
-        ),
-      );
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
     try {
@@ -106,10 +100,12 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
     required IconData icon,
     TextInputType keyboardType = TextInputType.text,
     bool enabled = true,
+    String? Function(String?)? validator,
   }) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       enabled: enabled,
+      validator: validator,
       keyboardType: keyboardType,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
@@ -188,49 +184,54 @@ class _UserProfileEditPageState extends State<UserProfileEditPage> {
                     ),
                   ),
                   // Form Fields
-                  ModernCard(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Name Field
-                        Text(
-                          'Full Name',
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                        const SizedBox(height: 8),
-                        _buildInputField(
-                          controller: _nameController,
-                          label: 'Enter your full name',
-                          icon: Icons.person,
-                        ),
-                        const SizedBox(height: 20),
-                        // Email Field
-                        Text(
-                          'Email Address',
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                        const SizedBox(height: 8),
-                        _buildInputField(
-                          controller: _emailController,
-                          label: 'Email cannot be changed',
-                          icon: Icons.email,
-                          enabled: false,
-                        ),
-                        const SizedBox(height: 20),
-                        // Phone Field
-                        Text(
-                          'Phone Number',
-                          style: Theme.of(context).textTheme.labelLarge,
-                        ),
-                        const SizedBox(height: 8),
-                        _buildInputField(
-                          controller: _phoneController,
-                          label: 'Enter your phone number',
-                          icon: Icons.phone,
-                          keyboardType: TextInputType.phone,
-                        ),
-                      ],
+          Form(
+            key: _formKey,
+            child: ModernCard(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Name Field
+                  Text(
+                    'Full Name',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildInputField(
+                    controller: _nameController,
+                    label: 'Enter your full name',
+                    icon: Icons.person,
+                    validator: (v) => Validators.validateRequired(v, 'Full Name'),
+                  ),
+                  const SizedBox(height: 20),
+                  // Email Field
+                  Text(
+                    'Email Address',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildInputField(
+                    controller: _emailController,
+                    label: 'Email cannot be changed',
+                    icon: Icons.email,
+                    enabled: false,
+                  ),
+                  const SizedBox(height: 20),
+                  // Phone Field
+                  Text(
+                    'Phone Number',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  _buildInputField(
+                    controller: _phoneController,
+                    label: 'Enter your phone number',
+                    icon: Icons.phone,
+                    keyboardType: TextInputType.phone,
+                    validator: Validators.validatePhone,
+                  ),
+                ],
+              ),
                     ),
                   ),
                   const SizedBox(height: 24),
