@@ -9,6 +9,7 @@ abstract class MatchesRemoteDataSource {
   Future<List<MatchModel>> getMatchesByDate(DateTime date);
   Future<List<MatchModel>> getAllMatches();
   Future<List<MatchEventEntity>> getMatchEvents(String fixtureId);
+  Future<List<MatchStatEntity>> getMatchStats(String fixtureId);
   Future<List<Map<String, dynamic>>> getLeagues();
   Future<List<Map<String, dynamic>>> getCountries();
 }
@@ -17,10 +18,15 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
   final http.Client client;
   final String? apiKey;
 
-  // For API-Football (RapidAPI)
+  // For API-Sports (API-Football)
   static const String baseUrl = 'https://v3.football.api-sports.io';
 
   MatchesRemoteDataSourceImpl({required this.client, this.apiKey});
+
+  Map<String, String> get _headers => {
+    'x-apisports-key': apiKey ?? '',
+    'x-rapidapi-host': 'v3.football.api-sports.io',
+  };
 
   @override
   Future<List<MatchModel>> getMatchesByLeague(int leagueId, {DateTime? date}) async {
@@ -35,10 +41,7 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
 
     final response = await client.get(
       Uri.parse(url),
-      headers: {
-        'x-rapidapi-key': apiKey!,
-        'x-rapidapi-host': 'v3.football.api-sports.io',
-      },
+      headers: _headers,
     );
 
     if (response.statusCode == 200) {
@@ -58,13 +61,9 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
       return _getMockMatches(date: date);
     }
 
-    // Fetch all matches for the given date in a single API call
     final response = await client.get(
       Uri.parse('$baseUrl/fixtures?date=$dateStr'),
-      headers: {
-        'x-rapidapi-key': apiKey!,
-        'x-rapidapi-host': 'v3.football.api-sports.io',
-      },
+      headers: _headers,
     );
 
     if (response.statusCode == 200) {
@@ -89,10 +88,7 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
 
     final response = await client.get(
       Uri.parse('$baseUrl/fixtures/events?fixture=$fixtureId'),
-      headers: {
-        'x-rapidapi-key': apiKey!,
-        'x-rapidapi-host': 'v3.football.api-sports.io',
-      },
+      headers: _headers,
     );
 
     if (response.statusCode == 200) {
@@ -101,7 +97,7 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
       return events.map((e) => MatchEventEntity(
         time: e['time']['elapsed'] ?? 0,
         teamName: e['team']['name'] ?? '',
-        player: e['player']['name'] ?? '',
+        player: e['player']?['name'] ?? '',
         type: e['type'] ?? '',
         detail: e['detail'] ?? '',
       )).toList();
@@ -111,15 +107,45 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
   }
 
   @override
+  Future<List<MatchStatEntity>> getMatchStats(String fixtureId) async {
+    if (apiKey == null || apiKey!.isEmpty) {
+      return _getMockStats();
+    }
+
+    final response = await client.get(
+      Uri.parse('$baseUrl/fixtures/statistics?fixture=$fixtureId'),
+      headers: _headers,
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      final List responseData = data['response'] ?? [];
+      if (responseData.length < 2) return [];
+
+      final homeStats = responseData[0]['statistics'] as List;
+      final awayStats = responseData[1]['statistics'] as List;
+
+      List<MatchStatEntity> stats = [];
+      for (int i = 0; i < homeStats.length; i++) {
+        stats.add(MatchStatEntity(
+          type: homeStats[i]['type'] ?? '',
+          homeValue: homeStats[i]['value']?.toString() ?? '0',
+          awayValue: awayStats[i]['value']?.toString() ?? '0',
+        ));
+      }
+      return stats;
+    } else {
+      throw Exception('Failed to load statistics');
+    }
+  }
+
+  @override
   Future<List<Map<String, dynamic>>> getLeagues() async {
     if (apiKey == null || apiKey!.isEmpty) return [];
 
     final response = await client.get(
       Uri.parse('$baseUrl/leagues'),
-      headers: {
-        'x-rapidapi-key': apiKey!,
-        'x-rapidapi-host': 'v3.football.api-sports.io',
-      },
+      headers: _headers,
     );
 
     if (response.statusCode == 200) {
@@ -140,10 +166,7 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
 
     final response = await client.get(
       Uri.parse('$baseUrl/countries'),
-      headers: {
-        'x-rapidapi-key': apiKey!,
-        'x-rapidapi-host': 'v3.football.api-sports.io',
-      },
+      headers: _headers,
     );
 
     if (response.statusCode == 200) {
@@ -179,6 +202,7 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
         utcDate: now.copyWith(hour: 20, minute: 0),
         status: 'NS',
         leagueName: leagueName,
+        leagueId: leagueId ?? 233,
       ),
       MatchModel(
         id: '${leagueId ?? 0}_2_${now.day}',
@@ -189,6 +213,7 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
         utcDate: now.copyWith(hour: 18, minute: 30),
         status: 'NS',
         leagueName: leagueName,
+        leagueId: leagueId ?? 233,
       ),
     ];
   }
@@ -197,6 +222,14 @@ class MatchesRemoteDataSourceImpl implements MatchesRemoteDataSource {
     return [
       MatchEventEntity(time: 12, teamName: 'الأهلي', player: 'محمد شريف', type: 'Goal', detail: 'Normal Goal'),
       MatchEventEntity(time: 45, teamName: 'الزمالك', player: 'أحمد سيد زيزو', type: 'Card', detail: 'Yellow Card'),
+    ];
+  }
+
+  List<MatchStatEntity> _getMockStats() {
+    return [
+      MatchStatEntity(type: 'الاستحواذ', homeValue: '55%', awayValue: '45%'),
+      MatchStatEntity(type: 'التسديدات', homeValue: '12', awayValue: '8'),
+      MatchStatEntity(type: 'التسديدات على المرمى', homeValue: '5', awayValue: '3'),
     ];
   }
 }

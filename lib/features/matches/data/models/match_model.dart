@@ -11,6 +11,7 @@ class MatchModel extends MatchEntity {
     required super.status,
     super.score,
     required super.leagueName,
+    required super.leagueId,
     super.group,
   });
 
@@ -31,6 +32,7 @@ class MatchModel extends MatchEntity {
       status: fixture['status']['short'] ?? 'NS',
       score: goals['home'] != null ? '${goals['home']} - ${goals['away']}' : null,
       leagueName: league['name'] ?? '',
+      leagueId: league['id'] ?? 0,
       group: null,
     );
   }
