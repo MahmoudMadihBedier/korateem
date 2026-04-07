@@ -5,6 +5,7 @@ abstract class IMatchesRepository {
   Future<List<MatchEntity>> getMatchesByLeague(int leagueId, {DateTime? date});
   Future<List<MatchEntity>> getMatchesByDate(DateTime date);
   Future<List<MatchEventEntity>> getMatchEvents(String fixtureId);
+  Future<List<MatchStatEntity>> getMatchStats(String fixtureId);
   Future<List<Map<String, dynamic>>> getLeagues();
   Future<List<Map<String, dynamic>>> getCountries();
 }
@@ -16,11 +17,23 @@ class MatchEventEntity {
   final String type; // 'Goal', 'Card', 'subst'
   final String detail;
 
-  MatchEventEntity({
+  const MatchEventEntity({
     required this.time,
     required this.teamName,
     required this.player,
     required this.type,
     required this.detail,
+  });
+}
+
+class MatchStatEntity {
+  final String type;
+  final String homeValue;
+  final String awayValue;
+
+  const MatchStatEntity({
+    required this.type,
+    required this.homeValue,
+    required this.awayValue,
   });
 }

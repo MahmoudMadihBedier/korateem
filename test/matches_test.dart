@@ -19,12 +19,16 @@ class MockMatchesRepository implements IMatchesRepository {
         utcDate: DateTime.now().add(const Duration(hours: 1)),
         status: 'NS',
         leagueName: 'Test League',
+        leagueId: 1,
       ),
     ];
   }
 
   @override
-  Future<List<MatchEntity>> getMatchesByLeague(int leagueId, {DateTime? date}) async {
+  Future<List<MatchEntity>> getMatchesByLeague(
+    int leagueId, {
+    DateTime? date,
+  }) async {
     return [
       MatchEntity(
         id: '1',
@@ -35,13 +39,14 @@ class MockMatchesRepository implements IMatchesRepository {
         utcDate: (date ?? DateTime.now()).copyWith(hour: 15),
         status: 'NS',
         leagueName: 'League $leagueId',
+        leagueId: leagueId,
       ),
     ];
   }
 
   @override
   Future<List<MatchEntity>> getMatchesByDate(DateTime date) async {
-     return [
+    return [
       MatchEntity(
         id: '1',
         homeTeam: 'Team A',
@@ -51,12 +56,18 @@ class MockMatchesRepository implements IMatchesRepository {
         utcDate: date.copyWith(hour: 15),
         status: 'NS',
         leagueName: 'Test League',
+        leagueId: 1,
       ),
     ];
   }
 
   @override
   Future<List<MatchEventEntity>> getMatchEvents(String fixtureId) async {
+    return [];
+  }
+
+  @override
+  Future<List<MatchStatEntity>> getMatchStats(String fixtureId) async {
     return [];
   }
 
@@ -72,15 +83,13 @@ class MockMatchesRepository implements IMatchesRepository {
 }
 
 void main() {
-  testWidgets('MatchesPage builds and displays matches', (WidgetTester tester) async {
+  testWidgets('MatchesPage builds and displays matches', (tester) async {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
           Provider<IMatchesRepository>(create: (_) => MockMatchesRepository()),
         ],
-        child: const MaterialApp(
-          home: MatchesPage(),
-        ),
+        child: const MaterialApp(home: MatchesPage()),
       ),
     );
 
