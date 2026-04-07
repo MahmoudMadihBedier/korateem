@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../domain/entities/match_entity.dart';
 import 'package:korateem/ui/modern_components.dart';
+import 'match_details_popup.dart';
 
 class MatchCardWidget extends StatelessWidget {
   final MatchEntity match;
@@ -16,6 +17,12 @@ class MatchCardWidget extends StatelessWidget {
 
     return ModernCard.glass(
       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => MatchDetailsPopup(match: match),
+        );
+      },
       child: Column(
         children: [
           Row(

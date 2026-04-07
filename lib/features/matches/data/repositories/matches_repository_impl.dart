@@ -26,4 +26,24 @@ class MatchesRepositoryImpl implements IMatchesRepository {
       throw Exception('Repository error: $e');
     }
   }
+
+  @override
+  Future<List<MatchEntity>> getMatchesByDate(DateTime date) async {
+    try {
+      final matches = await remoteDataSource.getMatchesByDate(date);
+      return matches;
+    } catch (e) {
+      throw Exception('Repository error: $e');
+    }
+  }
+
+  @override
+  Future<List<MatchEventEntity>> getMatchEvents(String fixtureId) async {
+    try {
+      final events = await remoteDataSource.getMatchEvents(fixtureId);
+      return events;
+    } catch (e) {
+      throw Exception('Repository error: $e');
+    }
+  }
 }

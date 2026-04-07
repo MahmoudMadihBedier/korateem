@@ -27,6 +27,27 @@ class MockMatchesRepository implements IMatchesRepository {
   Future<List<MatchEntity>> getMatchesByLeague(int leagueId) async {
     return [];
   }
+
+  @override
+  Future<List<MatchEntity>> getMatchesByDate(DateTime date) async {
+     return [
+      MatchEntity(
+        id: '1',
+        homeTeam: 'Team A',
+        awayTeam: 'Team B',
+        homeTeamLogo: '',
+        awayTeamLogo: '',
+        utcDate: date.copyWith(hour: 15),
+        status: 'NS',
+        leagueName: 'Test League',
+      ),
+    ];
+  }
+
+  @override
+  Future<List<MatchEventEntity>> getMatchEvents(String fixtureId) async {
+    return [];
+  }
 }
 
 void main() {
@@ -43,7 +64,7 @@ void main() {
     );
 
     expect(find.text('جدول المباريات'), findsOneWidget);
-    expect(find.text('الكل'), findsOneWidget);
+    expect(find.text('اليوم'), findsOneWidget);
 
     await tester.pumpAndSettle();
 
