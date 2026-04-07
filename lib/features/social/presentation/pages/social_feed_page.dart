@@ -5,8 +5,8 @@ import 'package:korateem/features/social/domain/entities/post_entity.dart';
 import 'package:korateem/features/social/domain/repositories/post_repository.dart';
 import 'package:korateem/features/social/presentation/controllers/social_feed_controller.dart';
 import 'package:korateem/features/social/presentation/formatters/relative_time_formatter.dart';
-import 'package:korateem/features/social/presentation/widgets/comments_sheet.dart';
-import 'package:korateem/features/social/presentation/widgets/post_header.dart';
+import 'package:korateem/features/social/presentation/widgets/create_post_card.dart';
+import 'package:korateem/features/social/presentation/widgets/social_post_card.dart';
 import 'package:korateem/features/user/data/repositories/user_repository.dart';
 import 'package:korateem/ui/modern_components.dart';
 
@@ -22,7 +22,6 @@ class SocialFeedPage extends StatefulWidget {
 class _SocialFeedPageState extends State<SocialFeedPage> {
   late final SocialFeedController _controller;
   final RelativeTimeFormatter _timeFormatter = const RelativeTimeFormatter();
-
   @override
   void initState() {
     super.initState();
@@ -33,132 +32,162 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
     );
   }
 
-  Future<void> _toggleLike(String postId) async {
-    try {
-      await _controller.toggleLike(postId);
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: $e'),
-          backgroundColor: const Color(0xFFCF6679),
-        ),
-      );
-    }
-  }
+  void _openCreatePostComposer() {
+    final textController = TextEditingController();
+    final focusNode = FocusNode();
 
-  void _showCreatePostDialog() {
-    final controller = TextEditingController();
-    showDialog<void>(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: const Color(0xFF2A2A2A),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Create New Post',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: controller,
-                maxLines: 4,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  hintText: 'What is on your mind?',
-                  hintStyle: const TextStyle(color: Color(0xFF808080)),
-                  filled: true,
-                  fillColor: const Color(0xFF1E1E1E),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF404040)),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF404040)),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: Color(0xFF43A047),
-                      width: 2,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text(
-                      'Cancel',
-                      style: TextStyle(color: Color(0xFF808080)),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final text = controller.text.trim();
-                      if (text.isEmpty) return;
-                      try {
-                        await _controller.createPost(content: text);
-                        if (!context.mounted) return;
-                        Navigator.pop(context);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Post created successfully!'),
-                            backgroundColor: Color(0xFF43A047),
-                          ),
-                        );
-                      } catch (e) {
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Error: $e'),
-                            backgroundColor: const Color(0xFFCF6679),
-                          ),
-                        );
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF43A047),
-                      minimumSize: const Size(120, 44),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                    ),
-                    child: const Text('Post', style: TextStyle(color: Colors.white)),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _openCommentsSheet(String postId) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: const Color(0xFF121212),
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
-      ),
-      builder: (_) => Provider.value(
-        value: _controller,
-        child: CommentsSheet(postId: postId),
-      ),
-    );
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.55),
+      builder: (sheetContext) {
+        final bottomInset = MediaQuery.of(sheetContext).viewInsets.bottom;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (focusNode.hasFocus) return;
+          focusNode.requestFocus();
+        });
+
+        return Padding(
+          padding: EdgeInsets.only(bottom: bottomInset),
+          child: DraggableScrollableSheet(
+            initialChildSize: 0.55,
+            minChildSize: 0.45,
+            maxChildSize: 0.95,
+            builder: (context, scrollController) {
+              bool posting = false;
+              return StatefulBuilder(
+                builder: (context, setModalState) {
+                  Future<void> submit() async {
+                    if (posting) return;
+                    final text = textController.text.trim();
+                    if (text.isEmpty) return;
+                    setModalState(() => posting = true);
+                    try {
+                      await _controller.createPost(content: text);
+                      if (!mounted) return;
+                      Navigator.of(this.context).pop();
+                      ScaffoldMessenger.of(this.context).showSnackBar(
+                        const SnackBar(
+                          content: Text('تم نشر المنشور بنجاح!'),
+                          backgroundColor: Color(0xFF43A047),
+                        ),
+                      );
+                    } catch (e) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(this.context).showSnackBar(
+                        SnackBar(
+                          content: Text('حدث خطأ: $e'),
+                          backgroundColor: const Color(0xFFCF6679),
+                        ),
+                      );
+                    } finally {
+                      try {
+                        setModalState(() => posting = false);
+                      } catch (_) {}
+                    }
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                    child: ModernCard.glass(
+                      padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+                      child: ListView(
+                        controller: scrollController,
+                        children: [
+                          Center(
+                            child: Container(
+                              width: 44,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.18),
+                                borderRadius: BorderRadius.circular(99),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            textDirection: TextDirection.rtl,
+                            children: [
+                              Text(
+                                'منشور جديد',
+                                style: Theme.of(context).textTheme.titleLarge,
+                              ),
+                              const Spacer(),
+                              IconButton(
+                                onPressed: () => Navigator.pop(context),
+                                icon: const Icon(Icons.close_rounded),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          ModernCard(
+                            glassy: false,
+                            backgroundColor: const Color(0xFF121212),
+                            padding: const EdgeInsets.all(12),
+                            child: TextField(
+                              controller: textController,
+                              focusNode: focusNode,
+                              minLines: 4,
+                              maxLines: 10,
+                              textDirection: TextDirection.rtl,
+                              decoration: const InputDecoration(
+                                border: InputBorder.none,
+                                hintText: 'بماذا تفكر؟',
+                              ),
+                              onChanged: (_) => setModalState(() {}),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            textDirection: TextDirection.rtl,
+                            children: [
+                              Text(
+                                '${textController.text.trim().length} حرف',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              const Spacer(),
+                              ElevatedButton(
+                                onPressed:
+                                    posting || textController.text.trim().isEmpty
+                                        ? null
+                                        : submit,
+                                style: ElevatedButton.styleFrom(
+                                  minimumSize: const Size(140, 46),
+                                ),
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 180),
+                                  child: posting
+                                      ? const SizedBox(
+                                          key: ValueKey('posting'),
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : const Text(
+                                          'نشر',
+                                          key: ValueKey('post'),
+                                        ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        );
+      },
+    ).whenComplete(() {
+      textController.dispose();
+      focusNode.dispose();
+    });
   }
 
   @override
@@ -167,193 +196,109 @@ class _SocialFeedPageState extends State<SocialFeedPage> {
       value: _controller,
       child: Scaffold(
         backgroundColor: const Color(0xFF121212),
-        appBar: const ModernAppBar(title: 'Social Feed', glassy: true),
-        body: StreamBuilder<List<PostEntity>>(
-          stream: _controller.watchFeed(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const ModernLoading();
-            }
+        body: SafeArea(
+          child: StreamBuilder<List<PostEntity>>(
+            stream: _controller.watchFeed(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const ModernLoading();
+              }
 
-            if (snapshot.hasError) {
-              return EmptyState(
-                icon: Icons.error_outline,
-                title: 'Error Loading Posts',
-                subtitle: 'An error occurred while loading posts',
-                actionLabel: 'Retry',
-                onAction: () => setState(() {}),
-              );
-            }
-
-            if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return EmptyState(
-                icon: Icons.inbox_outlined,
-                title: 'No Posts Yet',
-                subtitle: 'Be the first to post!',
-                actionLabel: 'Create Post',
-                onAction: _showCreatePostDialog,
-              );
-            }
-
-            final posts = snapshot.data!;
-
-            return ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: posts.length,
-              itemBuilder: (context, index) {
-                final post = posts[index];
-                final timeLabel = _timeFormatter.formatEnglish(post.createdAt);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: AnimatedListItem(
-                    delay: Duration(milliseconds: 24 * (index.clamp(0, 12))),
-                    child: ModernCard.glass(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        PostHeader(post: post, timeLabel: timeLabel),
-                        const SizedBox(height: 12),
-                        Text(
-                          post.content,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        if (post.imageUrl != null) ...[
-                          const SizedBox(height: 12),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.network(
-                              post.imageUrl!,
-                              height: 200,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  height: 200,
-                                  color: const Color(0xFF2A2A2A),
-                                  child: const Center(
-                                    child: Icon(
-                                      Icons.broken_image,
-                                      color: Color(0xFF808080),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 12),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.favorite,
-                              size: 18,
-                              color: post.likes.contains(widget.userId)
-                                  ? Colors.red
-                                  : const Color(0xFF808080),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${post.likes.length}',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                            const SizedBox(width: 16),
-                            const Icon(
-                              Icons.comment_outlined,
-                              size: 18,
-                              color: Color(0xFF43A047),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${post.commentsCount}',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        const Divider(color: Color(0xFF404040), height: 1),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Expanded(
-                              child: _ActionButton(
-                                icon: post.likes.contains(widget.userId)
-                                    ? Icons.favorite
-                                    : Icons.favorite_border,
-                                label: 'Like',
-                                color: post.likes.contains(widget.userId)
-                                    ? Colors.red
-                                    : const Color(0xFF808080),
-                                onTap: () => _toggleLike(post.id),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: _ActionButton(
-                                icon: Icons.comment_outlined,
-                                label: 'Comment',
-                                color: const Color(0xFF43A047),
-                                onTap: () => _openCommentsSheet(post.id),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: _ActionButton(
-                                icon: Icons.share_outlined,
-                                label: 'Share',
-                                color: const Color(0xFF66BB6A),
-                                onTap: () {},
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  ),
+              if (snapshot.hasError) {
+                return EmptyState(
+                  icon: Icons.error_outline,
+                  title: 'خطأ في تحميل المنشورات',
+                  subtitle: 'حدث خطأ أثناء تحميل المنشورات',
+                  actionLabel: 'إعادة المحاولة',
+                  onAction: () => setState(() {}),
                 );
-              },
-            );
-          },
-        ),
-        floatingActionButton: FloatingActionButton(
-          heroTag: 'fab_social_feed',
-          onPressed: _showCreatePostDialog,
-          backgroundColor: const Color(0xFF43A047),
-          child: const Icon(Icons.add),
+              }
+
+              final posts = snapshot.data ?? const <PostEntity>[];
+
+              return ListView.separated(
+                padding: const EdgeInsets.all(12),
+                itemCount: posts.isEmpty ? 2 : posts.length + 1,
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
+                itemBuilder: (context, index) {
+                  if (index == 0) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _FeedTopBar(
+                          onNotificationsTap: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('الإشعارات قريباً.'),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        CreatePostCard(onCreate: _openCreatePostComposer),
+                      ],
+                    );
+                  }
+
+                  if (posts.isEmpty && index == 1) {
+                    return EmptyState(
+                      icon: Icons.inbox_outlined,
+                      title: 'لا توجد منشورات بعد',
+                      subtitle: 'كن أول من ينشر!',
+                      actionLabel: 'إنشاء منشور',
+                      onAction: _openCreatePostComposer,
+                    );
+                  }
+
+                  final post = posts[index - 1];
+                  final timeLabel = _timeFormatter.formatArabic(post.createdAt);
+
+                  return AnimatedListItem(
+                    delay: Duration(
+                      milliseconds: 24 * ((index - 1).clamp(0, 12)),
+                    ),
+                    child: SocialPostCard(
+                      post: post,
+                      currentUserId: widget.userId,
+                      timeLabel: timeLabel,
+                    ),
+                  );
+                },
+              );
+            },
+          ),
         ),
       ),
     );
   }
 }
 
-class _ActionButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
+class _FeedTopBar extends StatelessWidget {
+  final VoidCallback onNotificationsTap;
 
-  const _ActionButton({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
-  });
+  const _FeedTopBar({required this.onNotificationsTap});
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
+    return ModernCard.glass(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      child: Row(
+        textDirection: TextDirection.rtl,
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 4),
           Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
+            'كورة تيم',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Colors.white.withValues(alpha: 0.95),
+                ),
+          ),
+          const Spacer(),
+          IconButton(
+            onPressed: onNotificationsTap,
+            icon: Badge(
+              child: Icon(
+                Icons.notifications_rounded,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
           ),
         ],

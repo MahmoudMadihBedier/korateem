@@ -3,6 +3,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+class AuthActionException implements Exception {
+  final String message;
+  const AuthActionException(this.message);
+  @override
+  String toString() => message;
+}
+
 abstract class IAuthService {
   Future<User?> signInWithEmail(String email, String password);
   Future<User?> signUpWithEmail(
@@ -13,6 +20,9 @@ abstract class IAuthService {
   );
   Future<void> signOut();
   Future<User?> signInWithGoogle();
+  Future<void> sendPasswordResetEmail(String email);
+  Future<void> sendEmailVerification();
+  Future<void> reloadCurrentUser();
   Stream<User?> get userChanges;
   User? get currentUser;
   String? get errorMessage;
@@ -105,6 +115,15 @@ class AuthService extends ChangeNotifier implements IAuthService {
           phone: phone,
           profileImage: _user!.photoURL,
         );
+
+        // Send verification email (if needed).
+        if (!(_user!.emailVerified)) {
+          try {
+            await _user!.sendEmailVerification();
+          } on FirebaseAuthException catch (e) {
+            _handleAuthError(e);
+          }
+        }
       }
 
       notifyListeners();
@@ -193,6 +212,59 @@ class AuthService extends ChangeNotifier implements IAuthService {
     }
   }
 
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      _errorMessage = null;
+      final trimmed = email.trim();
+      if (trimmed.isEmpty || !trimmed.contains('@')) {
+        _errorMessage = 'الرجاء إدخال بريد إلكتروني صحيح';
+        notifyListeners();
+        throw const AuthActionException('الرجاء إدخال بريد إلكتروني صحيح');
+      }
+      await _auth.sendPasswordResetEmail(email: trimmed);
+      notifyListeners();
+    } on FirebaseAuthException catch (e) {
+      _handleAuthError(e);
+      throw AuthActionException(_errorMessage ?? 'تعذر إرسال رابط الاستعادة');
+    } catch (e) {
+      _errorMessage = 'تعذر إرسال رابط الاستعادة';
+      notifyListeners();
+      throw const AuthActionException('تعذر إرسال رابط الاستعادة');
+    }
+  }
+
+  @override
+  Future<void> sendEmailVerification() async {
+    try {
+      _errorMessage = null;
+      final user = _auth.currentUser;
+      if (user == null) {
+        _errorMessage = 'لا يوجد مستخدم مسجل حالياً';
+        notifyListeners();
+        throw const AuthActionException('لا يوجد مستخدم مسجل حالياً');
+      }
+      await user.sendEmailVerification();
+      notifyListeners();
+    } on FirebaseAuthException catch (e) {
+      _handleAuthError(e);
+      throw AuthActionException(_errorMessage ?? 'تعذر إرسال رابط التحقق');
+    } catch (e) {
+      _errorMessage = 'تعذر إرسال رابط التحقق';
+      notifyListeners();
+      throw const AuthActionException('تعذر إرسال رابط التحقق');
+    }
+  }
+
+  @override
+  Future<void> reloadCurrentUser() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+    await user.reload();
+    _user = _auth.currentUser;
+    notifyListeners();
+  }
+
   void _handleAuthError(FirebaseAuthException e) {
     switch (e.code) {
       case 'weak-password':
@@ -221,6 +293,9 @@ class AuthService extends ChangeNotifier implements IAuthService {
         break;
       case 'network-request-failed':
         _errorMessage = 'خطأ في الاتصال بالإنترنت';
+        break;
+      case 'invalid-credential':
+        _errorMessage = 'بيانات الدخول غير صحيحة';
         break;
       default:
         _errorMessage = e.message ?? 'حدث خطأ: ${e.code}';

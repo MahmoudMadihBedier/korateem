@@ -186,8 +186,7 @@ class _LoginScreenState extends State<LoginScreen>
                           Align(
                             alignment: Alignment.centerRight,
                             child: TextButton(
-                              onPressed: () =>
-                                  _showError('خدمة استرجاع كلمة المرور قريباً'),
+                              onPressed: _isLoading ? null : _showResetPasswordDialog,
                               child: const Text('هل نسيت كلمة المرور؟'),
                             ),
                           ),
@@ -335,6 +334,21 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
+  void _showResetPasswordDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (context) {
+        return _ResetPasswordDialog(
+          initialEmail: emailController.text.trim(),
+          onSuccess: () => _showSuccess(
+            'تم إرسال رابط استعادة كلمة المرور إلى بريدك.',
+          ),
+          onError: _showError,
+        );
+      },
+    );
+  }
+
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -440,6 +454,120 @@ class _PrimaryButton extends StatelessWidget {
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
             : Text(label),
+      ),
+    );
+  }
+}
+
+class _ResetPasswordDialog extends StatefulWidget {
+  final String initialEmail;
+  final VoidCallback onSuccess;
+  final ValueChanged<String> onError;
+
+  const _ResetPasswordDialog({
+    required this.initialEmail,
+    required this.onSuccess,
+    required this.onError,
+  });
+
+  @override
+  State<_ResetPasswordDialog> createState() => _ResetPasswordDialogState();
+}
+
+class _ResetPasswordDialogState extends State<_ResetPasswordDialog> {
+  late final TextEditingController _controller =
+      TextEditingController(text: widget.initialEmail);
+  bool _sending = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final email = _controller.text.trim();
+    if (email.isEmpty || !email.contains('@')) {
+      widget.onError('الرجاء إدخال بريد إلكتروني صحيح');
+      return;
+    }
+    if (_sending) return;
+
+    setState(() => _sending = true);
+    try {
+      await context.read<AuthService>().sendPasswordResetEmail(email);
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      widget.onSuccess();
+    } catch (e) {
+      if (!mounted) return;
+      widget.onError('حدث خطأ: $e');
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedPadding(
+      duration: const Duration(milliseconds: 180),
+      curve: Curves.easeOutCubic,
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: Dialog(
+        backgroundColor: const Color(0xFF2A2A2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                'استعادة كلمة المرور',
+                textAlign: TextAlign.right,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'اكتب بريدك الإلكتروني وسنرسل لك رابط تغيير كلمة المرور.',
+                textAlign: TextAlign.right,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              const SizedBox(height: 12),
+              _AuthTextField(
+                controller: _controller,
+                label: 'البريد الإلكتروني',
+                icon: Icons.email_outlined,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.done,
+                onSubmitted: (_) => _submit(),
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('إلغاء'),
+                  ),
+                  const Spacer(),
+                  ElevatedButton(
+                    onPressed: _sending ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      minimumSize: const Size(140, 46),
+                    ),
+                    child: _sending
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('إرسال الرابط'),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

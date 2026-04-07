@@ -338,7 +338,7 @@ class _SignupScreenState extends State<SignupScreen>
     setState(() => _isLoading = false);
 
     if (user != null) {
-      _showSuccess('تم إنشاء الحساب بنجاح!');
+      _showSuccess('تم إنشاء الحساب! تم إرسال رسالة تحقق إلى بريدك.');
       await Future.delayed(const Duration(milliseconds: 900));
       Navigator.pop(context);
     } else {
