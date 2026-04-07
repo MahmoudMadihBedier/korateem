@@ -1,5 +1,5 @@
-import '../../domain/repositories/matches_repository.dart';
 import '../../domain/entities/match_entity.dart';
+import '../../domain/repositories/matches_repository.dart';
 import '../datasources/matches_remote_datasource.dart';
 
 class MatchesRepositoryImpl implements IMatchesRepository {
@@ -22,9 +22,13 @@ class MatchesRepositoryImpl implements IMatchesRepository {
   }
 
   @override
-  Future<List<MatchEntity>> getMatchesByLeague(int leagueId, {DateTime? date}) async {
+  Future<List<MatchEntity>> getMatchesByLeague(
+    int leagueId, {
+    DateTime? date,
+  }) async {
     try {
-      final matches = await remoteDataSource.getMatchesByLeague(leagueId, date: date);
+      final matches =
+          await remoteDataSource.getMatchesByLeague(leagueId, date: date);
       return _sortMatches(matches);
     } catch (e) {
       throw Exception('Repository error: $e');
@@ -44,8 +48,8 @@ class MatchesRepositoryImpl implements IMatchesRepository {
   List<MatchEntity> _sortMatches(List<MatchEntity> matches) {
     final sortedList = List<MatchEntity>.from(matches);
     sortedList.sort((a, b) {
-      int scoreA = _getPriorityScore(a.leagueId, a.leagueName);
-      int scoreB = _getPriorityScore(b.leagueId, b.leagueName);
+      final scoreA = _getPriorityScore(a.leagueId, a.leagueName);
+      final scoreB = _getPriorityScore(b.leagueId, b.leagueName);
 
       if (scoreA != scoreB) {
         return scoreA.compareTo(scoreB);
@@ -56,7 +60,8 @@ class MatchesRepositoryImpl implements IMatchesRepository {
   }
 
   int _getPriorityScore(int leagueId, String leagueName) {
-    if (leagueId == egyptianLeagueId || leagueName.toLowerCase().contains('egypt')) return 0;
+    final lower = leagueName.toLowerCase();
+    if (leagueId == egyptianLeagueId || lower.contains('egypt')) return 0;
     if (top5LeagueIds.contains(leagueId)) return 1;
     if (globalChampIds.contains(leagueId)) return 2;
     return 3;
@@ -65,8 +70,7 @@ class MatchesRepositoryImpl implements IMatchesRepository {
   @override
   Future<List<MatchEventEntity>> getMatchEvents(String fixtureId) async {
     try {
-      final events = await remoteDataSource.getMatchEvents(fixtureId);
-      return events;
+      return await remoteDataSource.getMatchEvents(fixtureId);
     } catch (e) {
       throw Exception('Repository error: $e');
     }
@@ -75,8 +79,7 @@ class MatchesRepositoryImpl implements IMatchesRepository {
   @override
   Future<List<MatchStatEntity>> getMatchStats(String fixtureId) async {
     try {
-      final stats = await remoteDataSource.getMatchStats(fixtureId);
-      return stats;
+      return await remoteDataSource.getMatchStats(fixtureId);
     } catch (e) {
       throw Exception('Repository error: $e');
     }
@@ -86,7 +89,7 @@ class MatchesRepositoryImpl implements IMatchesRepository {
   Future<List<Map<String, dynamic>>> getLeagues() async {
     try {
       return await remoteDataSource.getLeagues();
-    } catch (e) {
+    } catch (_) {
       return [];
     }
   }
@@ -95,7 +98,7 @@ class MatchesRepositoryImpl implements IMatchesRepository {
   Future<List<Map<String, dynamic>>> getCountries() async {
     try {
       return await remoteDataSource.getCountries();
-    } catch (e) {
+    } catch (_) {
       return [];
     }
   }

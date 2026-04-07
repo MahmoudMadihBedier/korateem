@@ -17,7 +17,7 @@ class MatchEventEntity {
   final String type; // 'Goal', 'Card', 'subst'
   final String detail;
 
-  MatchEventEntity({
+  const MatchEventEntity({
     required this.time,
     required this.teamName,
     required this.player,
@@ -31,7 +31,7 @@ class MatchStatEntity {
   final String homeValue;
   final String awayValue;
 
-  MatchStatEntity({
+  const MatchStatEntity({
     required this.type,
     required this.homeValue,
     required this.awayValue,
