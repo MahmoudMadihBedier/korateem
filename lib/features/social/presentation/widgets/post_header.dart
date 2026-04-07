@@ -51,6 +51,7 @@ class _HeaderRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasImage = imageUrl.trim().isNotEmpty;
     return Row(
+      textDirection: TextDirection.rtl,
       children: [
         CircleAvatar(
           radius: 24,
@@ -61,17 +62,23 @@ class _HeaderRow extends StatelessWidget {
               : const Icon(Icons.person, color: Colors.white),
         ),
         const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(name, style: Theme.of(context).textTheme.titleMedium),
-              Text(timeLabel, style: Theme.of(context).textTheme.bodySmall),
-            ],
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Text(
+              name,
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.right,
+            ),
+            Text(
+              timeLabel,
+              style: Theme.of(context).textTheme.bodySmall,
+              textAlign: TextAlign.right,
+            ),
+          ],
         ),
+        const Spacer(),
       ],
     );
   }
 }
-

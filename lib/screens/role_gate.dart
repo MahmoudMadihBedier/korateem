@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:korateem/screens/choose_role_page.dart';
 import 'package:korateem/screens/home_screen.dart';
+import 'package:korateem/screens/verify_email_screen.dart';
+import 'package:korateem/services/auth_service.dart';
 import 'package:korateem/services/user_role_service.dart';
 import 'package:korateem/ui/modern_components.dart';
+import 'package:provider/provider.dart';
 
 class RoleGate extends StatelessWidget {
   final String uid;
@@ -10,6 +13,12 @@ class RoleGate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthService>();
+    final user = auth.currentUser;
+    if (user != null && !(user.emailVerified)) {
+      return const VerifyEmailScreen();
+    }
+
     final roleService = UserRoleService();
     return StreamBuilder<String?>(
       stream: roleService.watchRole(uid),
@@ -26,4 +35,3 @@ class RoleGate extends StatelessWidget {
     );
   }
 }
-

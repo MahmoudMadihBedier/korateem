@@ -10,5 +10,14 @@ class RelativeTimeFormatter {
     if (difference.inDays < 1) return '${difference.inHours}h ago';
     return '${difference.inDays}d ago';
   }
-}
 
+  String formatArabic(DateTime dateTime, {DateTime? now}) {
+    final DateTime current = now ?? DateTime.now();
+    final difference = current.difference(dateTime);
+
+    if (difference.inMinutes < 1) return 'الآن';
+    if (difference.inHours < 1) return 'منذ ${difference.inMinutes} دقيقة';
+    if (difference.inDays < 1) return 'منذ ${difference.inHours} ساعة';
+    return 'منذ ${difference.inDays} يوم';
+  }
+}
