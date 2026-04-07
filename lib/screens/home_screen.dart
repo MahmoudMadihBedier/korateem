@@ -8,6 +8,8 @@ import 'package:korateem/screens/user_profile_screen.dart';
 import 'package:korateem/services/auth_service.dart';
 import 'package:korateem/ui/modern_components.dart';
 import 'package:provider/provider.dart';
+import 'package:korateem/features/matches/domain/repositories/matches_repository.dart';
+import 'package:korateem/features/matches/presentation/widgets/match_card_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userRole; // 'player' | 'owner'
@@ -152,6 +154,13 @@ class _HomeTabPageState extends State<HomeTabPage>
     super.dispose();
   }
 
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'صباح الخير';
+    if (hour < 17) return 'أهلاً بك';
+    return 'مساء الخير';
+  }
+
   @override
   Widget build(BuildContext context) {
     final isOwner = widget.userRole.trim().toLowerCase() == 'owner';
@@ -159,6 +168,7 @@ class _HomeTabPageState extends State<HomeTabPage>
     final greetingName = (userName == null || userName.trim().isEmpty)
         ? 'مستخدم'
         : userName.trim();
+    final greetingPrefix = _getGreeting();
 
     return Scaffold(
       drawer: _buildDrawer(context),
@@ -195,7 +205,12 @@ class _HomeTabPageState extends State<HomeTabPage>
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset('assets/images/studim.jpeg', fit: BoxFit.cover),
+                  Image.asset(
+                    'assets/images/studim.jpeg',
+                    fit: BoxFit.cover,
+                    cacheWidth: 1080,
+                    cacheHeight: 720,
+                  ),
                   DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -222,13 +237,14 @@ class _HomeTabPageState extends State<HomeTabPage>
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                'أهلاً، $greetingName',
+                                '$greetingPrefix، $greetingName',
                                 style: Theme.of(context)
                                     .textTheme
                                     .displayMedium
                                     ?.copyWith(
                                       color: Colors.white,
                                       height: 1.05,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                 textAlign: TextAlign.right,
                               ),
@@ -259,6 +275,8 @@ class _HomeTabPageState extends State<HomeTabPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    _buildMatchesTicker(context),
+                    const SizedBox(height: 24),
                     Text(
                       'الخدمات السريعة',
                       textAlign: TextAlign.right,
@@ -372,6 +390,56 @@ class _HomeTabPageState extends State<HomeTabPage>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMatchesTicker(BuildContext context) {
+    final matchRepo = Provider.of<IMatchesRepository>(context, listen: false);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              onPressed: () => Navigator.pushNamed(context, '/matches'),
+              child: const Text('عرض الكل'),
+            ),
+            Text(
+              'مباريات اليوم',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 140,
+          child: FutureBuilder(
+            future: matchRepo.getMatchesByDate(DateTime.now()),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('لا توجد مباريات اليوم'));
+              }
+              final matches = snapshot.data!;
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                reverse: true,
+                itemCount: matches.length,
+                itemBuilder: (context, index) {
+                  return Container(
+                    width: 300,
+                    margin: const EdgeInsets.only(left: 12),
+                    child: MatchCardWidget(match: matches[index]),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
