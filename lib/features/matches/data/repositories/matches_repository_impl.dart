@@ -1,36 +1,41 @@
-import '../../domain/entities/match_entity.dart';
 import '../../domain/repositories/matches_repository.dart';
+import '../../domain/entities/match_entity.dart';
 import '../datasources/matches_remote_datasource.dart';
+import '../datasources/matches_local_datasource.dart';
+import 'package:intl/intl.dart';
 
 class MatchesRepositoryImpl implements IMatchesRepository {
   final MatchesRemoteDataSource remoteDataSource;
+  final MatchesLocalDataSource localDataSource;
 
   static const egyptianLeagueId = 233;
   static const top5LeagueIds = [39, 140, 78, 135, 61];
   static const globalChampIds = [2, 12, 3, 5];
 
-  MatchesRepositoryImpl({required this.remoteDataSource});
+  MatchesRepositoryImpl({
+    required this.remoteDataSource,
+    required this.localDataSource,
+  });
 
   @override
   Future<List<MatchEntity>> getAllMatches() async {
-    try {
-      final matches = await remoteDataSource.getAllMatches();
-      return _sortMatches(matches);
-    } catch (e) {
-      throw Exception('Repository error: $e');
-    }
+    return getMatchesByDate(DateTime.now());
   }
 
   @override
-  Future<List<MatchEntity>> getMatchesByLeague(
-    int leagueId, {
-    DateTime? date,
-  }) async {
+  Future<List<MatchEntity>> getMatchesByLeague(int leagueId, {DateTime? date}) async {
     try {
-      final matches =
-          await remoteDataSource.getMatchesByLeague(leagueId, date: date);
+      final cacheKey = 'league_${leagueId}_${date != null ? DateFormat('yyyyMMdd').format(date) : "next"}';
+      final cached = await localDataSource.getCachedMatches(cacheKey);
+      if (cached.isNotEmpty) return _sortMatches(cached);
+
+      final matches = await remoteDataSource.getMatchesByLeague(leagueId, date: date);
+      await localDataSource.cacheMatches(cacheKey, matches);
       return _sortMatches(matches);
     } catch (e) {
+      final cacheKey = 'league_${leagueId}_${date != null ? DateFormat('yyyyMMdd').format(date) : "next"}';
+      final cached = await localDataSource.getCachedMatches(cacheKey);
+      if (cached.isNotEmpty) return _sortMatches(cached);
       throw Exception('Repository error: $e');
     }
   }
@@ -38,9 +43,17 @@ class MatchesRepositoryImpl implements IMatchesRepository {
   @override
   Future<List<MatchEntity>> getMatchesByDate(DateTime date) async {
     try {
+      final dateStr = DateFormat('yyyyMMdd').format(date);
+      final cached = await localDataSource.getCachedMatches('date_$dateStr');
+      if (cached.isNotEmpty) return _sortMatches(cached);
+
       final matches = await remoteDataSource.getMatchesByDate(date);
+      await localDataSource.cacheMatches('date_$dateStr', matches);
       return _sortMatches(matches);
     } catch (e) {
+      final dateStr = DateFormat('yyyyMMdd').format(date);
+      final cached = await localDataSource.getCachedMatches('date_$dateStr');
+      if (cached.isNotEmpty) return _sortMatches(cached);
       throw Exception('Repository error: $e');
     }
   }
@@ -48,8 +61,8 @@ class MatchesRepositoryImpl implements IMatchesRepository {
   List<MatchEntity> _sortMatches(List<MatchEntity> matches) {
     final sortedList = List<MatchEntity>.from(matches);
     sortedList.sort((a, b) {
-      final scoreA = _getPriorityScore(a.leagueId, a.leagueName);
-      final scoreB = _getPriorityScore(b.leagueId, b.leagueName);
+      int scoreA = _getPriorityScore(a.leagueId, a.leagueName);
+      int scoreB = _getPriorityScore(b.leagueId, b.leagueName);
 
       if (scoreA != scoreB) {
         return scoreA.compareTo(scoreB);
@@ -60,8 +73,7 @@ class MatchesRepositoryImpl implements IMatchesRepository {
   }
 
   int _getPriorityScore(int leagueId, String leagueName) {
-    final lower = leagueName.toLowerCase();
-    if (leagueId == egyptianLeagueId || lower.contains('egypt')) return 0;
+    if (leagueId == egyptianLeagueId || leagueName.toLowerCase().contains('egypt')) return 0;
     if (top5LeagueIds.contains(leagueId)) return 1;
     if (globalChampIds.contains(leagueId)) return 2;
     return 3;
@@ -70,7 +82,8 @@ class MatchesRepositoryImpl implements IMatchesRepository {
   @override
   Future<List<MatchEventEntity>> getMatchEvents(String fixtureId) async {
     try {
-      return await remoteDataSource.getMatchEvents(fixtureId);
+      final events = await remoteDataSource.getMatchEvents(fixtureId);
+      return events;
     } catch (e) {
       throw Exception('Repository error: $e');
     }
@@ -79,7 +92,8 @@ class MatchesRepositoryImpl implements IMatchesRepository {
   @override
   Future<List<MatchStatEntity>> getMatchStats(String fixtureId) async {
     try {
-      return await remoteDataSource.getMatchStats(fixtureId);
+      final stats = await remoteDataSource.getMatchStats(fixtureId);
+      return stats;
     } catch (e) {
       throw Exception('Repository error: $e');
     }
@@ -89,7 +103,7 @@ class MatchesRepositoryImpl implements IMatchesRepository {
   Future<List<Map<String, dynamic>>> getLeagues() async {
     try {
       return await remoteDataSource.getLeagues();
-    } catch (_) {
+    } catch (e) {
       return [];
     }
   }
@@ -98,7 +112,7 @@ class MatchesRepositoryImpl implements IMatchesRepository {
   Future<List<Map<String, dynamic>>> getCountries() async {
     try {
       return await remoteDataSource.getCountries();
-    } catch (_) {
+    } catch (e) {
       return [];
     }
   }

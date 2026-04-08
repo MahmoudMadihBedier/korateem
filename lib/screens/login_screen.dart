@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../services/auth_service.dart';
 import 'signup_screen.dart';
+import '../core/utils/validators.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -16,6 +17,7 @@ class _LoginScreenState extends State<LoginScreen>
     with SingleTickerProviderStateMixin {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   bool _isLoading = false;
   bool _passwordVisible = false;
@@ -92,10 +94,9 @@ class _LoginScreenState extends State<LoginScreen>
                                     shape: BoxShape.circle,
                                     color: Colors.white.withOpacity(0.12),
                                     border: Border.all(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary
-                                          .withOpacity(0.6),
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary.withOpacity(0.6),
                                     ),
                                   ),
                                   child: const Icon(
@@ -108,17 +109,13 @@ class _LoginScreenState extends State<LoginScreen>
                               const SizedBox(height: 12),
                               Text(
                                 'كورة تيم',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .displayMedium
+                                style: Theme.of(context).textTheme.displayMedium
                                     ?.copyWith(color: Colors.white),
                               ),
                               const SizedBox(height: 6),
                               Text(
                                 'احجز ملعبك وشكّل فريقك بسرعة',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(color: Colors.white70),
                                 textAlign: TextAlign.center,
                               ),
@@ -141,96 +138,100 @@ class _LoginScreenState extends State<LoginScreen>
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     ModernCard(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            'مرحباً بعودتك',
-                            style: Theme.of(context).textTheme.titleLarge,
-                            textAlign: TextAlign.right,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'سجّل دخولك لمتابعة الحجز والمنشورات.',
-                            style: Theme.of(context).textTheme.bodySmall,
-                            textAlign: TextAlign.right,
-                          ),
-                          const SizedBox(height: 16),
-                          _AuthTextField(
-                            controller: emailController,
-                            label: 'البريد الإلكتروني',
-                            icon: Icons.email_outlined,
-                            keyboardType: TextInputType.emailAddress,
-                            textInputAction: TextInputAction.next,
-                          ),
-                          const SizedBox(height: 12),
-                          _AuthTextField(
-                            controller: passwordController,
-                            label: 'كلمة المرور',
-                            icon: Icons.lock_outline,
-                            obscureText: !_passwordVisible,
-                            textInputAction: TextInputAction.done,
-                            onSubmitted: (_) => _isLoading ? null : _login(),
-                            suffixIcon: IconButton(
-                              onPressed: () => setState(
-                                () => _passwordVisible = !_passwordVisible,
-                              ),
-                              icon: Icon(
-                                _passwordVisible
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                              ),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              'مرحباً بعودتك',
+                              style: Theme.of(context).textTheme.titleLarge,
+                              textAlign: TextAlign.right,
                             ),
-                          ),
-                          const SizedBox(height: 10),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: _isLoading ? null : _showResetPasswordDialog,
-                              child: const Text('هل نسيت كلمة المرور؟'),
+                            const SizedBox(height: 6),
+                            Text(
+                              'سجّل دخولك لمتابعة الحجز والمنشورات.',
+                              style: Theme.of(context).textTheme.bodySmall,
+                              textAlign: TextAlign.right,
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          _PrimaryButton(
-                            label: 'تسجيل الدخول',
-                            isLoading: _isLoading,
-                            onPressed: _isLoading ? null : _login,
-                          ),
-                          const SizedBox(height: 14),
-                          Row(
-                            children: [
-                              const Expanded(
-                                child: Divider(
-                                  color: Color(0xFF2A2A2A),
-                                  height: 1,
+                            const SizedBox(height: 16),
+                            _AuthTextField(
+                              controller: emailController,
+                              label: 'البريد الإلكتروني',
+                              icon: Icons.email_outlined,
+                              keyboardType: TextInputType.emailAddress,
+                              textInputAction: TextInputAction.next,
+                              validator: Validators.validateEmail,
+                            ),
+                            const SizedBox(height: 12),
+                            _AuthTextField(
+                              controller: passwordController,
+                              label: 'كلمة المرور',
+                              icon: Icons.lock_outline,
+                              obscureText: !_passwordVisible,
+                              textInputAction: TextInputAction.done,
+                              onSubmitted: (_) => _isLoading ? null : _login(),
+                              validator: Validators.validatePassword,
+                              suffixIcon: IconButton(
+                                onPressed: () => setState(
+                                  () => _passwordVisible = !_passwordVisible,
+                                ),
+                                icon: Icon(
+                                  _passwordVisible
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
                                 ),
                               ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
-                                child: Text(
-                                  'أو',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ),
-                              const Expanded(
-                                child: Divider(
-                                  color: Color(0xFF2A2A2A),
-                                  height: 1,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 14),
-                          OutlinedButton.icon(
-                            onPressed: _isLoading ? null : _googleLogin,
-                            icon: const Icon(Icons.g_mobiledata_rounded),
-                            label: const Text('تسجيل الدخول عبر Google'),
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(double.infinity, 50),
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 10),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: _isLoading
+                                    ? null
+                                    : _showResetPasswordDialog,
+                                child: const Text('هل نسيت كلمة المرور؟'),
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            Row(
+                              children: [
+                                const Expanded(
+                                  child: Divider(
+                                    color: Color(0xFF2A2A2A),
+                                    height: 1,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  child: Text(
+                                    'أو',
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
+                                  ),
+                                ),
+                                const Expanded(
+                                  child: Divider(
+                                    color: Color(0xFF2A2A2A),
+                                    height: 1,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            OutlinedButton.icon(
+                              onPressed: _isLoading ? null : _googleLogin,
+                              icon: const Icon(Icons.g_mobiledata_rounded),
+                              label: const Text('تسجيل الدخول عبر Google'),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(double.infinity, 50),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -252,7 +253,9 @@ class _LoginScreenState extends State<LoginScreen>
                               children: [
                                 Text(
                                   'لا تملك حساب؟',
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
                                   textAlign: TextAlign.right,
                                 ),
                                 const SizedBox(height: 4),
@@ -283,22 +286,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   void _login() async {
-    if (emailController.text.isEmpty) {
-      _showError('الرجاء إدخال البريد الإلكتروني');
-      return;
-    }
-    if (!emailController.text.contains('@')) {
-      _showError('البريد الإلكتروني غير صحيح');
-      return;
-    }
-    if (passwordController.text.isEmpty) {
-      _showError('الرجاء إدخال كلمة المرور');
-      return;
-    }
-    if (passwordController.text.length < 6) {
-      _showError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
     final authService = Provider.of<AuthService>(context, listen: false);
@@ -340,9 +328,8 @@ class _LoginScreenState extends State<LoginScreen>
       builder: (context) {
         return _ResetPasswordDialog(
           initialEmail: emailController.text.trim(),
-          onSuccess: () => _showSuccess(
-            'تم إرسال رابط استعادة كلمة المرور إلى بريدك.',
-          ),
+          onSuccess: () =>
+              _showSuccess('تم إرسال رابط استعادة كلمة المرور إلى بريدك.'),
           onError: _showError,
         );
       },
@@ -397,6 +384,7 @@ class _AuthTextField extends StatelessWidget {
   final TextInputAction textInputAction;
   final Widget? suffixIcon;
   final ValueChanged<String>? onSubmitted;
+  final String? Function(String?)? validator;
 
   const _AuthTextField({
     required this.controller,
@@ -407,17 +395,19 @@ class _AuthTextField extends StatelessWidget {
     this.textInputAction = TextInputAction.next,
     this.suffixIcon,
     this.onSubmitted,
+    this.validator,
   });
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
       textInputAction: textInputAction,
-      onSubmitted: onSubmitted,
+      onFieldSubmitted: onSubmitted,
       textDirection: TextDirection.rtl,
+      validator: validator,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
@@ -475,8 +465,9 @@ class _ResetPasswordDialog extends StatefulWidget {
 }
 
 class _ResetPasswordDialogState extends State<_ResetPasswordDialog> {
-  late final TextEditingController _controller =
-      TextEditingController(text: widget.initialEmail);
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.initialEmail,
+  );
   bool _sending = false;
 
   @override
@@ -512,7 +503,9 @@ class _ResetPasswordDialogState extends State<_ResetPasswordDialog> {
     return AnimatedPadding(
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOutCubic,
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: Dialog(
         backgroundColor: const Color(0xFF2A2A2A),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
