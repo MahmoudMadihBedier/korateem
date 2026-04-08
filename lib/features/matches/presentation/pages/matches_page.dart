@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:korateem/ui/modern_components.dart';
 import 'package:provider/provider.dart';
-
-import '../../domain/entities/match_entity.dart';
+import 'package:intl/intl.dart';
 import '../../domain/repositories/matches_repository.dart';
+import '../../domain/entities/match_entity.dart';
 import '../widgets/match_card_widget.dart';
 import '../widgets/match_filter_bottom_sheet.dart';
+import 'package:korateem/ui/modern_components.dart';
 
 class MatchesPage extends StatefulWidget {
   const MatchesPage({super.key});
@@ -15,8 +14,7 @@ class MatchesPage extends StatefulWidget {
   State<MatchesPage> createState() => _MatchesPageState();
 }
 
-class _MatchesPageState extends State<MatchesPage>
-    with SingleTickerProviderStateMixin {
+class _MatchesPageState extends State<MatchesPage> with SingleTickerProviderStateMixin {
   late TabController _dateTabController;
   final List<({DateTime date, String label})> _dates = [
     (date: DateTime.now().subtract(const Duration(days: 1)), label: 'أمس'),
@@ -34,8 +32,7 @@ class _MatchesPageState extends State<MatchesPage>
   @override
   void initState() {
     super.initState();
-    _dateTabController =
-        TabController(length: _dates.length, vsync: this, initialIndex: 1);
+    _dateTabController = TabController(length: _dates.length, vsync: this, initialIndex: 1);
     _loadFilterOptions();
   }
 
@@ -43,11 +40,12 @@ class _MatchesPageState extends State<MatchesPage>
     final repository = Provider.of<IMatchesRepository>(context, listen: false);
     final countries = await repository.getCountries();
     final leagues = await repository.getLeagues();
-    if (!mounted) return;
-    setState(() {
-      _countries = countries;
-      _leagues = leagues;
-    });
+    if (mounted) {
+      setState(() {
+        _countries = countries;
+        _leagues = leagues;
+      });
+    }
   }
 
   @override
@@ -81,7 +79,7 @@ class _MatchesPageState extends State<MatchesPage>
 
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
-      appBar: const ModernAppBar(
+      appBar: ModernAppBar(
         title: 'جدول المباريات',
         showNotification: false,
       ),
@@ -118,7 +116,7 @@ class _MatchesPageState extends State<MatchesPage>
       child: TabBar(
         controller: _dateTabController,
         indicatorColor: Theme.of(context).colorScheme.primary,
-        indicatorPadding: EdgeInsets.zero,
+        indicatorPadding: EdgeInsets.zero, // Fixed crash
         labelColor: Theme.of(context).colorScheme.primary,
         unselectedLabelColor: Colors.grey,
         tabs: _dates.map((dateItem) {
@@ -184,10 +182,7 @@ class _MatchesListState extends State<_MatchesList> {
 
   void _loadMatches() {
     if (widget.leagueId != null) {
-      _matchesFuture = widget.repository.getMatchesByLeague(
-        widget.leagueId!,
-        date: widget.date,
-      );
+      _matchesFuture = widget.repository.getMatchesByLeague(widget.leagueId!, date: widget.date);
     } else {
       _matchesFuture = widget.repository.getMatchesByDate(widget.date);
     }
@@ -200,19 +195,19 @@ class _MatchesListState extends State<_MatchesList> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const ModernLoading(message: 'جاري تحميل المباريات...');
-        }
-        if (snapshot.hasError) {
+        } else if (snapshot.hasError) {
           return EmptyState(
             icon: Icons.error_outline,
             title: 'خطأ في تحميل البيانات',
             subtitle: 'تأكد من اتصالك بالإنترنت',
             onAction: () {
-              setState(_loadMatches);
+              setState(() {
+                _loadMatches();
+              });
             },
             actionLabel: 'إعادة المحاولة',
           );
-        }
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return const EmptyState(
             icon: Icons.sports_soccer,
             title: 'لا توجد مباريات حالياً',
@@ -221,33 +216,32 @@ class _MatchesListState extends State<_MatchesList> {
         }
 
         final matches = snapshot.data!;
+        // Apply filters locally for better experience
         var filteredMatches = matches;
 
         if (widget.status != null) {
-          filteredMatches = filteredMatches
-              .where((m) => m.status.contains(widget.status!))
-              .toList();
+          filteredMatches = filteredMatches.where((m) => m.status.contains(widget.status!)).toList();
         }
 
         if (widget.country != null && widget.leagueId == null) {
-          final countryLower = widget.country!.toLowerCase();
-          filteredMatches = filteredMatches
-              .where((m) => m.leagueName.toLowerCase().contains(countryLower))
-              .toList();
+          // If only country is selected, filter by country name in league
+          filteredMatches = filteredMatches.where((m) => m.leagueName.toLowerCase().contains(widget.country!.toLowerCase())).toList();
         }
 
         if (filteredMatches.isEmpty) {
-          return const EmptyState(
+           return const EmptyState(
             icon: Icons.sports_soccer,
             title: 'لا توجد مباريات تطابق التصفية',
             subtitle: 'جرب تغيير خيارات التصفية',
           );
         }
 
-        final groupedMatches = <String, List<MatchEntity>>{};
-        for (final match in filteredMatches) {
+        // Group by league
+        Map<String, List<MatchEntity>> groupedMatches = {};
+        for (var match in filteredMatches) {
           (groupedMatches[match.leagueName] ??= []).add(match);
         }
+
         final leagueNames = groupedMatches.keys.toList();
 
         return ListView.builder(
@@ -261,27 +255,23 @@ class _MatchesListState extends State<_MatchesList> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                   child: Text(
                     leagueName,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                     textAlign: TextAlign.right,
                   ),
                 ),
-                ...leagueMatches
-                    .map(
-                      (match) => AnimatedListItem(
-                        delay: const Duration(milliseconds: 50),
-                        child: Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: MatchCardWidget(match: match),
-                        ),
-                      ),
-                    ),
+                ...leagueMatches.map((match) => AnimatedListItem(
+                  delay: const Duration(milliseconds: 50),
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: MatchCardWidget(match: match),
+                  ),
+                )).toList(),
               ],
             );
           },
