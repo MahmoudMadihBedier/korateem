@@ -25,7 +25,10 @@ class MockMatchesRepository implements IMatchesRepository {
   }
 
   @override
-  Future<List<MatchEntity>> getMatchesByLeague(int leagueId, {DateTime? date}) async {
+  Future<List<MatchEntity>> getMatchesByLeague(
+    int leagueId, {
+    DateTime? date,
+  }) async {
     return [
       MatchEntity(
         id: '1',
@@ -43,7 +46,7 @@ class MockMatchesRepository implements IMatchesRepository {
 
   @override
   Future<List<MatchEntity>> getMatchesByDate(DateTime date) async {
-     return [
+    return [
       MatchEntity(
         id: '1',
         homeTeam: 'Team A',
@@ -80,15 +83,13 @@ class MockMatchesRepository implements IMatchesRepository {
 }
 
 void main() {
-  testWidgets('MatchesPage builds and displays matches', (WidgetTester tester) async {
+  testWidgets('MatchesPage builds and displays matches', (tester) async {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
           Provider<IMatchesRepository>(create: (_) => MockMatchesRepository()),
         ],
-        child: const MaterialApp(
-          home: MatchesPage(),
-        ),
+        child: const MaterialApp(home: MatchesPage()),
       ),
     );
 

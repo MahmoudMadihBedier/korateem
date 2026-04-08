@@ -27,7 +27,7 @@ class StadiumModel extends StadiumEntity {
       rating: (json['rating'] ?? 0.0).toDouble(),
       address: json['address'] ?? json['location'],
       phone: json['phone'],
-      pricePerHour: (json['pricePerHour'] ?? json['price'] ?? 0.0).toDouble(),
+      pricePerHour: (json['pricePerHour'] ?? 0.0).toDouble(),
     );
   }
 

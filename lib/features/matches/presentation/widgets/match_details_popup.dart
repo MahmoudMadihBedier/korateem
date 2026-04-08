@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../domain/repositories/matches_repository.dart';
 import '../../domain/entities/match_entity.dart';
-import 'package:korateem/ui/modern_components.dart';
 
 class MatchDetailsPopup extends StatelessWidget {
   final MatchEntity match;
@@ -98,12 +97,28 @@ class MatchDetailsPopup extends StatelessWidget {
   }
 
   Widget _buildTeam(String name, String logo, BuildContext context) {
+    final isSvg = logo.toLowerCase().endsWith('.svg');
+
     return Column(
       children: [
         if (logo.isNotEmpty)
-          Image.network(logo, width: 56, height: 56, errorBuilder: (c, e, s) => const Icon(Icons.sports_soccer, size: 56))
+          SizedBox(
+            width: 56,
+            height: 56,
+            child: isSvg
+                ? SvgPicture.network(
+                    logo,
+                    fit: BoxFit.contain,
+                    placeholderBuilder: (c) => const Icon(Icons.sports_soccer, size: 56, color: Colors.grey),
+                  )
+                : Image.network(
+                    logo,
+                    fit: BoxFit.contain,
+                    errorBuilder: (c, e, s) => const Icon(Icons.sports_soccer, size: 56, color: Colors.grey),
+                  ),
+          )
         else
-          const Icon(Icons.sports_soccer, size: 56),
+          const Icon(Icons.sports_soccer, size: 56, color: Colors.grey),
         const SizedBox(height: 8),
         SizedBox(
           width: 90,
