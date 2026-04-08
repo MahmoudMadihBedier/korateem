@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../domain/repositories/matches_repository.dart';
 import '../../domain/entities/match_entity.dart';
@@ -26,7 +27,9 @@ class MatchDetailsPopup extends StatelessWidget {
               // Header
               Text(
                 'تفاصيل المباراة',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
 
@@ -39,15 +42,21 @@ class MatchDetailsPopup extends StatelessWidget {
                     children: [
                       Text(
                         match.score ?? 'VS',
-                        style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                        style: Theme.of(context).textTheme.displaySmall
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        match.status == 'NS' ? 'لم تبدأ' : (match.status == 'FT' ? 'انتهت' : 'مباشر'),
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        match.status == 'NS'
+                            ? 'لم تبدأ'
+                            : (match.status == 'FT' ? 'انتهت' : 'مباشر'),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
@@ -97,7 +106,6 @@ class MatchDetailsPopup extends StatelessWidget {
   }
 
   Widget _buildTeam(String name, String logo, BuildContext context) {
-<<<<<<< feat/match-schedule-15652955682575042549
     final isSvg = logo.toLowerCase().endsWith('.svg');
 
     return Column(
@@ -110,24 +118,24 @@ class MatchDetailsPopup extends StatelessWidget {
                 ? SvgPicture.network(
                     logo,
                     fit: BoxFit.contain,
-                    placeholderBuilder: (c) => const Icon(Icons.sports_soccer, size: 56, color: Colors.grey),
+                    placeholderBuilder: (c) => const Icon(
+                      Icons.sports_soccer,
+                      size: 56,
+                      color: Colors.grey,
+                    ),
                   )
                 : Image.network(
                     logo,
                     fit: BoxFit.contain,
-                    errorBuilder: (c, e, s) => const Icon(Icons.sports_soccer, size: 56, color: Colors.grey),
+                    errorBuilder: (c, e, s) => const Icon(
+                      Icons.sports_soccer,
+                      size: 56,
+                      color: Colors.grey,
+                    ),
                   ),
           )
         else
           const Icon(Icons.sports_soccer, size: 56, color: Colors.grey),
-=======
-    return Column(
-      children: [
-        if (logo.isNotEmpty)
-          Image.network(logo, width: 56, height: 56, errorBuilder: (c, e, s) => const Icon(Icons.sports_soccer, size: 56))
-        else
-          const Icon(Icons.sports_soccer, size: 56),
->>>>>>> dev
         const SizedBox(height: 8),
         SizedBox(
           width: 90,
@@ -158,9 +166,19 @@ class _EventsList extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return const Center(child: Text('خطأ في تحميل الأحداث', style: TextStyle(color: Colors.red)));
+          return const Center(
+            child: Text(
+              'خطأ في تحميل الأحداث',
+              style: TextStyle(color: Colors.red),
+            ),
+          );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('لا توجد أحداث حالياً', style: TextStyle(color: Colors.grey)));
+          return const Center(
+            child: Text(
+              'لا توجد أحداث حالياً',
+              style: TextStyle(color: Colors.grey),
+            ),
+          );
         }
 
         final events = snapshot.data!;
@@ -173,7 +191,13 @@ class _EventsList extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('${event.time}\'', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF43A047))),
+                  Text(
+                    '${event.time}\'',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF43A047),
+                    ),
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -187,7 +211,10 @@ class _EventsList extends StatelessWidget {
                         Text(
                           _getEventDetailText(event.type, event.detail),
                           textAlign: TextAlign.right,
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
                         ),
                       ],
                     ),
@@ -205,10 +232,14 @@ class _EventsList extends StatelessWidget {
 
   Widget _buildEventIcon(String type) {
     switch (type.toLowerCase()) {
-      case 'goal': return const Icon(Icons.sports_soccer, color: Colors.green, size: 20);
-      case 'card': return const Icon(Icons.style, color: Colors.yellow, size: 20);
-      case 'subst': return const Icon(Icons.swap_vert, color: Colors.blue, size: 20);
-      default: return const Icon(Icons.info_outline, size: 20);
+      case 'goal':
+        return const Icon(Icons.sports_soccer, color: Colors.green, size: 20);
+      case 'card':
+        return const Icon(Icons.style, color: Colors.yellow, size: 20);
+      case 'subst':
+        return const Icon(Icons.swap_vert, color: Colors.blue, size: 20);
+      default:
+        return const Icon(Icons.info_outline, size: 20);
     }
   }
 
@@ -234,9 +265,19 @@ class _StatsList extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return const Center(child: Text('خطأ في تحميل الإحصائيات', style: TextStyle(color: Colors.red)));
+          return const Center(
+            child: Text(
+              'خطأ في تحميل الإحصائيات',
+              style: TextStyle(color: Colors.red),
+            ),
+          );
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('الإحصائيات غير متوفرة حالياً', style: TextStyle(color: Colors.grey)));
+          return const Center(
+            child: Text(
+              'الإحصائيات غير متوفرة حالياً',
+              style: TextStyle(color: Colors.grey),
+            ),
+          );
         }
 
         final stats = snapshot.data!;
@@ -251,9 +292,21 @@ class _StatsList extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(stat.homeValue, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      Text(stat.type, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-                      Text(stat.awayValue, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(
+                        stat.homeValue,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        stat.type,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Text(
+                        stat.awayValue,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -275,9 +328,29 @@ class _StatsList extends StatelessWidget {
 
     return Row(
       children: [
-        Expanded(flex: h.toInt(), child: Container(height: 4, decoration: const BoxDecoration(color: Color(0xFF43A047), borderRadius: BorderRadius.horizontal(left: Radius.circular(2))))),
+        Expanded(
+          flex: h.toInt(),
+          child: Container(
+            height: 4,
+            decoration: const BoxDecoration(
+              color: Color(0xFF43A047),
+              borderRadius: BorderRadius.horizontal(left: Radius.circular(2)),
+            ),
+          ),
+        ),
         const SizedBox(width: 2),
-        Expanded(flex: a.toInt(), child: Container(height: 4, decoration: BoxDecoration(color: Colors.grey[800], borderRadius: const BorderRadius.horizontal(right: Radius.circular(2))))),
+        Expanded(
+          flex: a.toInt(),
+          child: Container(
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey[800],
+              borderRadius: const BorderRadius.horizontal(
+                right: Radius.circular(2),
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }

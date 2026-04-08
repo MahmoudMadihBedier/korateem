@@ -98,10 +98,9 @@ class _SignupScreenState extends State<SignupScreen>
                                   shape: BoxShape.circle,
                                   color: Colors.white.withOpacity(0.12),
                                   border: Border.all(
-                                    color: Theme.of(context)
-                                        .colorScheme
-                                        .primary
-                                        .withOpacity(0.6),
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary.withOpacity(0.6),
                                   ),
                                 ),
                                 child: const Icon(
@@ -113,17 +112,13 @@ class _SignupScreenState extends State<SignupScreen>
                               const SizedBox(height: 12),
                               Text(
                                 'ابدأ رحلتك',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .displaySmall
+                                style: Theme.of(context).textTheme.displaySmall
                                     ?.copyWith(color: Colors.white),
                               ),
                               const SizedBox(height: 6),
                               Text(
                                 'أنشئ حسابك للانضمام لمجتمع اللاعبين.',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(color: Colors.white70),
                                 textAlign: TextAlign.center,
                               ),
@@ -153,23 +148,24 @@ class _SignupScreenState extends State<SignupScreen>
                           children: [
                             Text(
                               'بيانات الحساب',
-                            style: Theme.of(context).textTheme.titleLarge,
-                            textAlign: TextAlign.right,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'اكتب بياناتك بشكل صحيح لإنشاء حسابك.',
-                            style: Theme.of(context).textTheme.bodySmall,
-                            textAlign: TextAlign.right,
-                          ),
-                          const SizedBox(height: 16),
+                              style: Theme.of(context).textTheme.titleLarge,
+                              textAlign: TextAlign.right,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'اكتب بياناتك بشكل صحيح لإنشاء حسابك.',
+                              style: Theme.of(context).textTheme.bodySmall,
+                              textAlign: TextAlign.right,
+                            ),
+                            const SizedBox(height: 16),
                             _AuthTextField(
                               controller: nameController,
                               label: 'الاسم الكامل',
                               icon: Icons.person_outline,
                               keyboardType: TextInputType.name,
                               textInputAction: TextInputAction.next,
-                              validator: (v) => Validators.validateRequired(v, 'الاسم'),
+                              validator: (v) =>
+                                  Validators.validateRequired(v, 'الاسم'),
                             ),
                             const SizedBox(height: 12),
                             _AuthTextField(
@@ -199,7 +195,7 @@ class _SignupScreenState extends State<SignupScreen>
                               validator: Validators.validatePassword,
                               suffixIcon: IconButton(
                                 onPressed: () => setState(
-                                  () => _passwordsVisible = !_passwordVisible,
+                                  () => _passwordsVisible = !_passwordsVisible,
                                 ),
                                 icon: Icon(
                                   _passwordsVisible
@@ -217,33 +213,13 @@ class _SignupScreenState extends State<SignupScreen>
                               textInputAction: TextInputAction.done,
                               onSubmitted: (_) => _isLoading ? null : _signup(),
                               validator: (v) {
-                                if (v != passwordController.text) return 'كلمات المرور غير متطابقة';
+                                if (v != passwordController.text) {
+                                  return 'كلمات المرور غير متطابقة';
+                                }
                                 return null;
                               },
-                            ),
-                          const SizedBox(height: 8),
-                          Directionality(
-                            textDirection: TextDirection.rtl,
-                            child: CheckboxListTile(
-                              value: _agreedToTerms,
-                              onChanged: (value) => setState(
-                                () => _agreedToTerms = value ?? false,
-                              ),
                             ),
                             const SizedBox(height: 12),
-                            _AuthTextField(
-                              controller: confirmPasswordController,
-                              label: 'تأكيد كلمة المرور',
-                              icon: Icons.lock_outline,
-                              obscureText: !_passwordsVisible,
-                              textInputAction: TextInputAction.done,
-                              onSubmitted: (_) => _isLoading ? null : _signup(),
-                              validator: (v) {
-                                if (v != passwordController.text) return 'كلمات المرور غير متطابقة';
-                                return null;
-                              },
-                            ),
-                            const SizedBox(height: 8),
                             Directionality(
                               textDirection: TextDirection.rtl,
                               child: CheckboxListTile(
@@ -251,9 +227,11 @@ class _SignupScreenState extends State<SignupScreen>
                                 onChanged: (value) => setState(
                                   () => _agreedToTerms = value ?? false,
                                 ),
-                                activeColor:
-                                    Theme.of(context).colorScheme.primary,
-                                controlAffinity: ListTileControlAffinity.leading,
+                                activeColor: Theme.of(
+                                  context,
+                                ).colorScheme.primary,
+                                controlAffinity:
+                                    ListTileControlAffinity.leading,
                                 contentPadding: EdgeInsets.zero,
                                 title: Text(
                                   'أوافق على شروط الاستخدام',
@@ -287,7 +265,9 @@ class _SignupScreenState extends State<SignupScreen>
                               children: [
                                 Text(
                                   'لديك حساب بالفعل؟',
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
                                   textAlign: TextAlign.right,
                                 ),
                                 const SizedBox(height: 4),
