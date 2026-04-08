@@ -12,7 +12,6 @@ class StadiumModel extends StadiumEntity {
     super.rating,
     super.address,
     super.phone,
-    super.pricePerHour,
   });
 
   factory StadiumModel.fromFirestore(Map<String, dynamic> json, String id) {
@@ -27,7 +26,6 @@ class StadiumModel extends StadiumEntity {
       rating: (json['rating'] ?? 0.0).toDouble(),
       address: json['address'] ?? json['location'],
       phone: json['phone'],
-      pricePerHour: (json['pricePerHour'] ?? 0.0).toDouble(),
     );
   }
 
@@ -42,7 +40,6 @@ class StadiumModel extends StadiumEntity {
       'rating': rating,
       'address': address,
       'phone': phone,
-      'pricePerHour': pricePerHour,
     };
   }
 }

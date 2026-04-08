@@ -97,6 +97,7 @@ class MatchDetailsPopup extends StatelessWidget {
   }
 
   Widget _buildTeam(String name, String logo, BuildContext context) {
+<<<<<<< feat/match-schedule-15652955682575042549
     final isSvg = logo.toLowerCase().endsWith('.svg');
 
     return Column(
@@ -119,6 +120,14 @@ class MatchDetailsPopup extends StatelessWidget {
           )
         else
           const Icon(Icons.sports_soccer, size: 56, color: Colors.grey),
+=======
+    return Column(
+      children: [
+        if (logo.isNotEmpty)
+          Image.network(logo, width: 56, height: 56, errorBuilder: (c, e, s) => const Icon(Icons.sports_soccer, size: 56))
+        else
+          const Icon(Icons.sports_soccer, size: 56),
+>>>>>>> dev
         const SizedBox(height: 8),
         SizedBox(
           width: 90,
