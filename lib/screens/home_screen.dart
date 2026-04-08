@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:korateem/screens/fields_screen.dart';
+import 'package:korateem/features/stadium/presentation/pages/fields_page.dart';
 import 'package:korateem/screens/owner_admin_page.dart';
 import 'package:korateem/screens/social_feed_page.dart';
 import 'package:korateem/screens/stadium_dashboard_page.dart';
@@ -8,6 +8,8 @@ import 'package:korateem/screens/user_profile_screen.dart';
 import 'package:korateem/services/auth_service.dart';
 import 'package:korateem/ui/modern_components.dart';
 import 'package:provider/provider.dart';
+import 'package:korateem/features/matches/domain/repositories/matches_repository.dart';
+import 'package:korateem/features/matches/presentation/widgets/match_card_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userRole; // 'player' | 'owner'
@@ -55,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
               feedTabIndex: 3,
               profileTabIndex: 4,
             ),
-            const FieldsScreen(),
+            const FieldsPage(),
             TeamScreen(currentUserId: uid),
             SocialFeedPage(userId: uid),
             UserProfileScreen(uid: uid),
@@ -152,6 +154,13 @@ class _HomeTabPageState extends State<HomeTabPage>
     super.dispose();
   }
 
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'صباح الخير';
+    if (hour < 17) return 'أهلاً بك';
+    return 'مساء الخير';
+  }
+
   @override
   Widget build(BuildContext context) {
     final isOwner = widget.userRole.trim().toLowerCase() == 'owner';
@@ -159,6 +168,7 @@ class _HomeTabPageState extends State<HomeTabPage>
     final greetingName = (userName == null || userName.trim().isEmpty)
         ? 'مستخدم'
         : userName.trim();
+    final greetingPrefix = _getGreeting();
 
     return Scaffold(
       drawer: _buildDrawer(context),
@@ -195,7 +205,12 @@ class _HomeTabPageState extends State<HomeTabPage>
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset('assets/images/studim.jpeg', fit: BoxFit.cover),
+                  Image.asset(
+                    'assets/images/studim.jpeg',
+                    fit: BoxFit.cover,
+                    cacheWidth: 1080,
+                    cacheHeight: 720,
+                  ),
                   DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -222,13 +237,14 @@ class _HomeTabPageState extends State<HomeTabPage>
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                'أهلاً، $greetingName',
+                                '$greetingPrefix، $greetingName',
                                 style: Theme.of(context)
                                     .textTheme
                                     .displayMedium
                                     ?.copyWith(
                                       color: Colors.white,
                                       height: 1.05,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                 textAlign: TextAlign.right,
                               ),
@@ -259,6 +275,8 @@ class _HomeTabPageState extends State<HomeTabPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    _buildMatchesTicker(context),
+                    const SizedBox(height: 24),
                     Text(
                       'الخدمات السريعة',
                       textAlign: TextAlign.right,
@@ -292,6 +310,12 @@ class _HomeTabPageState extends State<HomeTabPage>
                                 ),
                               ),
                               _HomeAction(
+                                icon: Icons.calendar_month_outlined,
+                                title: 'جدول المباريات',
+                                subtitle: 'تابع كل البطولات',
+                                onTap: () => Navigator.pushNamed(context, '/matches'),
+                              ),
+                              _HomeAction(
                                 icon: Icons.edit,
                                 title: 'تعديل الملف',
                                 subtitle: 'حدّث بياناتك',
@@ -310,6 +334,12 @@ class _HomeTabPageState extends State<HomeTabPage>
                                 onTap: () => widget.onNavigateTab(
                                   widget.fieldsTabIndex ?? widget.stadiumsTabIndex,
                                 ),
+                              ),
+                              _HomeAction(
+                                icon: Icons.calendar_month_outlined,
+                                title: 'جدول المباريات',
+                                subtitle: 'تابع كل البطولات',
+                                onTap: () => Navigator.pushNamed(context, '/matches'),
                               ),
                               _HomeAction(
                                 icon: Icons.group,
@@ -360,6 +390,56 @@ class _HomeTabPageState extends State<HomeTabPage>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMatchesTicker(BuildContext context) {
+    final matchRepo = Provider.of<IMatchesRepository>(context, listen: false);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              onPressed: () => Navigator.pushNamed(context, '/matches'),
+              child: const Text('عرض الكل'),
+            ),
+            Text(
+              'مباريات اليوم',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 140,
+          child: FutureBuilder(
+            future: matchRepo.getMatchesByDate(DateTime.now()),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('لا توجد مباريات اليوم'));
+              }
+              final matches = snapshot.data!;
+              return ListView.builder(
+                scrollDirection: Axis.horizontal,
+                reverse: true,
+                itemCount: matches.length,
+                itemBuilder: (context, index) {
+                  return Container(
+                    width: 300,
+                    margin: const EdgeInsets.only(left: 12),
+                    child: MatchCardWidget(match: matches[index]),
+                  );
+                },
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 

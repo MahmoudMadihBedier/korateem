@@ -9,6 +9,7 @@ class StadiumEntity {
   final double rating;
   final String? address;
   final String? phone;
+  final double pricePerHour;
 
   StadiumEntity({
     required this.id,
@@ -21,5 +22,6 @@ class StadiumEntity {
     this.rating = 0.0,
     this.address,
     this.phone,
+    this.pricePerHour = 0.0,
   });
 }

@@ -18,5 +18,8 @@ void main() {
     expect(find.byType(ModernAppBar), findsOneWidget);
     expect(find.byType(ModernCard), findsOneWidget);
     expect(find.text('Body'), findsOneWidget);
+
+    // Pump to clean up timers from ModernCard's animation
+    await tester.pumpAndSettle();
   });
 }

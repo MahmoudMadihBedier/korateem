@@ -10,6 +10,10 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:korateem/features/social/data/repositories/post_repository.dart';
 import 'package:korateem/features/social/domain/repositories/post_repository.dart';
 import 'package:korateem/features/user/data/repositories/user_repository.dart';
+import 'package:korateem/features/stadium/domain/repositories/stadium_repository.dart';
+import 'package:korateem/features/stadium/data/repositories/stadium_repository_impl.dart';
+import 'package:korateem/features/stadium/data/datasources/stadium_remote_datasource.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 // Feature screen imports
 import 'screens/user_profile_edit_page.dart';
 import 'screens/user_profile_page.dart';
@@ -18,9 +22,18 @@ import 'screens/user_rating_page.dart';
 import 'screens/social_feed_page.dart';
 import 'screens/stadium_profile_page.dart';
 import 'screens/stadium_dashboard_page.dart';
+import 'package:http/http.dart' as http;
+import 'features/matches/domain/repositories/matches_repository.dart';
+import 'features/matches/data/repositories/matches_repository_impl.dart';
+import 'features/matches/data/datasources/matches_remote_datasource.dart';
+import 'features/matches/data/datasources/matches_local_datasource.dart';
+import 'features/matches/presentation/pages/matches_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'core/config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final prefs = await SharedPreferences.getInstance();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   runApp(
     MultiProvider(
@@ -28,6 +41,24 @@ void main() async {
         ChangeNotifierProvider(create: (_) => AuthService()),
         Provider<IPostRepository>(create: (_) => PostRepository()),
         Provider<IUserRepository>(create: (_) => UserRepository()),
+        Provider<IStadiumRepository>(
+          create: (_) => StadiumRepositoryImpl(
+            remoteDataSource: StadiumRemoteDataSourceImpl(
+              firestore: FirebaseFirestore.instance,
+            ),
+          ),
+        ),
+        Provider<IMatchesRepository>(
+          create: (_) => MatchesRepositoryImpl(
+            remoteDataSource: MatchesRemoteDataSourceImpl(
+              client: http.Client(),
+              apiKey: AppConfig.footballApiKey,
+            ),
+            localDataSource: MatchesLocalDataSourceImpl(
+              sharedPreferences: prefs,
+            ),
+          ),
+        ),
       ],
       child: const MyApp(),
     ),
@@ -131,6 +162,8 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(
               builder: (_) => StadiumDashboardPage(ownerId: ownerId),
             );
+          case '/matches':
+            return MaterialPageRoute(builder: (_) => const MatchesPage());
           default:
             return null;
         }
