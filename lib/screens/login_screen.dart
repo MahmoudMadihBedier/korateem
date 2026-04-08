@@ -150,6 +150,18 @@ class _LoginScreenState extends State<LoginScreen>
                           children: [
                             Text(
                               'مرحباً بعودتك',
+<<<<<<< feat/match-schedule-15652955682575042549
+                              style: Theme.of(context).textTheme.titleLarge,
+                              textAlign: TextAlign.right,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'سجّل دخولك لمتابعة الحجز والمنشورات.',
+                              style: Theme.of(context).textTheme.bodySmall,
+                              textAlign: TextAlign.right,
+                            ),
+                            const SizedBox(height: 16),
+=======
                             style: Theme.of(context).textTheme.titleLarge,
                             textAlign: TextAlign.right,
                           ),
@@ -160,6 +172,7 @@ class _LoginScreenState extends State<LoginScreen>
                             textAlign: TextAlign.right,
                           ),
                           const SizedBox(height: 16),
+>>>>>>> dev
                             _AuthTextField(
                               controller: emailController,
                               label: 'البريد الإلكتروني',
@@ -195,48 +208,42 @@ class _LoginScreenState extends State<LoginScreen>
                               onPressed: _isLoading ? null : _showResetPasswordDialog,
                               child: const Text('هل نسيت كلمة المرور؟'),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          _PrimaryButton(
-                            label: 'تسجيل الدخول',
-                            isLoading: _isLoading,
-                            onPressed: _isLoading ? null : _login,
-                          ),
-                          const SizedBox(height: 14),
-                          Row(
-                            children: [
-                              const Expanded(
-                                child: Divider(
-                                  color: Color(0xFF2A2A2A),
-                                  height: 1,
+                            const SizedBox(height: 14),
+                            Row(
+                              children: [
+                                const Expanded(
+                                  child: Divider(
+                                    color: Color(0xFF2A2A2A),
+                                    height: 1,
+                                  ),
                                 ),
-                              ),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
-                                child: Text(
-                                  'أو',
-                                  style: Theme.of(context).textTheme.bodySmall,
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.symmetric(horizontal: 12),
+                                  child: Text(
+                                    'أو',
+                                    style: Theme.of(context).textTheme.bodySmall,
+                                  ),
                                 ),
-                              ),
-                              const Expanded(
-                                child: Divider(
-                                  color: Color(0xFF2A2A2A),
-                                  height: 1,
+                                const Expanded(
+                                  child: Divider(
+                                    color: Color(0xFF2A2A2A),
+                                    height: 1,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 14),
-                          OutlinedButton.icon(
-                            onPressed: _isLoading ? null : _googleLogin,
-                            icon: const Icon(Icons.g_mobiledata_rounded),
-                            label: const Text('تسجيل الدخول عبر Google'),
-                            style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(double.infinity, 50),
+                              ],
                             ),
-                          ),
-                        ],
+                            const SizedBox(height: 14),
+                            OutlinedButton.icon(
+                              onPressed: _isLoading ? null : _googleLogin,
+                              icon: const Icon(Icons.g_mobiledata_rounded),
+                              label: const Text('تسجيل الدخول عبر Google'),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size(double.infinity, 50),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),

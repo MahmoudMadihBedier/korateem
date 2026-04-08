@@ -229,23 +229,46 @@ class _SignupScreenState extends State<SignupScreen>
                               onChanged: (value) => setState(
                                 () => _agreedToTerms = value ?? false,
                               ),
-                              activeColor:
-                                  Theme.of(context).colorScheme.primary,
-                              controlAffinity: ListTileControlAffinity.leading,
-                              contentPadding: EdgeInsets.zero,
-                              title: Text(
-                                'أوافق على شروط الاستخدام',
-                                style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: 12),
+                            _AuthTextField(
+                              controller: confirmPasswordController,
+                              label: 'تأكيد كلمة المرور',
+                              icon: Icons.lock_outline,
+                              obscureText: !_passwordsVisible,
+                              textInputAction: TextInputAction.done,
+                              onSubmitted: (_) => _isLoading ? null : _signup(),
+                              validator: (v) {
+                                if (v != passwordController.text) return 'كلمات المرور غير متطابقة';
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 8),
+                            Directionality(
+                              textDirection: TextDirection.rtl,
+                              child: CheckboxListTile(
+                                value: _agreedToTerms,
+                                onChanged: (value) => setState(
+                                  () => _agreedToTerms = value ?? false,
+                                ),
+                                activeColor:
+                                    Theme.of(context).colorScheme.primary,
+                                controlAffinity: ListTileControlAffinity.leading,
+                                contentPadding: EdgeInsets.zero,
+                                title: Text(
+                                  'أوافق على شروط الاستخدام',
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          _PrimaryButton(
-                            label: 'إنشاء الحساب',
-                            isLoading: _isLoading,
-                            onPressed: _isLoading ? null : _signup,
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            _PrimaryButton(
+                              label: 'إنشاء الحساب',
+                              isLoading: _isLoading,
+                              onPressed: _isLoading ? null : _signup,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
