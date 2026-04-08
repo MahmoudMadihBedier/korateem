@@ -153,16 +153,16 @@ class _SignupScreenState extends State<SignupScreen>
                           children: [
                             Text(
                               'بيانات الحساب',
-                            style: Theme.of(context).textTheme.titleLarge,
-                            textAlign: TextAlign.right,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'اكتب بياناتك بشكل صحيح لإنشاء حسابك.',
-                            style: Theme.of(context).textTheme.bodySmall,
-                            textAlign: TextAlign.right,
-                          ),
-                          const SizedBox(height: 16),
+                              style: Theme.of(context).textTheme.titleLarge,
+                              textAlign: TextAlign.right,
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'اكتب بياناتك بشكل صحيح لإنشاء حسابك.',
+                              style: Theme.of(context).textTheme.bodySmall,
+                              textAlign: TextAlign.right,
+                            ),
+                            const SizedBox(height: 16),
                             _AuthTextField(
                               controller: nameController,
                               label: 'الاسم الكامل',
@@ -199,35 +199,13 @@ class _SignupScreenState extends State<SignupScreen>
                               validator: Validators.validatePassword,
                               suffixIcon: IconButton(
                                 onPressed: () => setState(
-                                  () => _passwordsVisible = !_passwordVisible,
+                                  () => _passwordsVisible = !_passwordsVisible,
                                 ),
                                 icon: Icon(
                                   _passwordsVisible
                                       ? Icons.visibility_outlined
                                       : Icons.visibility_off_outlined,
                                 ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            _AuthTextField(
-                              controller: confirmPasswordController,
-                              label: 'تأكيد كلمة المرور',
-                              icon: Icons.lock_outline,
-                              obscureText: !_passwordsVisible,
-                              textInputAction: TextInputAction.done,
-                              onSubmitted: (_) => _isLoading ? null : _signup(),
-                              validator: (v) {
-                                if (v != passwordController.text) return 'كلمات المرور غير متطابقة';
-                                return null;
-                              },
-                            ),
-                          const SizedBox(height: 8),
-                          Directionality(
-                            textDirection: TextDirection.rtl,
-                            child: CheckboxListTile(
-                              value: _agreedToTerms,
-                              onChanged: (value) => setState(
-                                () => _agreedToTerms = value ?? false,
                               ),
                             ),
                             const SizedBox(height: 12),

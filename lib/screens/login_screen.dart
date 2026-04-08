@@ -150,7 +150,6 @@ class _LoginScreenState extends State<LoginScreen>
                           children: [
                             Text(
                               'مرحباً بعودتك',
-<<<<<<< feat/match-schedule-15652955682575042549
                               style: Theme.of(context).textTheme.titleLarge,
                               textAlign: TextAlign.right,
                             ),
@@ -161,18 +160,6 @@ class _LoginScreenState extends State<LoginScreen>
                               textAlign: TextAlign.right,
                             ),
                             const SizedBox(height: 16),
-=======
-                            style: Theme.of(context).textTheme.titleLarge,
-                            textAlign: TextAlign.right,
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'سجّل دخولك لمتابعة الحجز والمنشورات.',
-                            style: Theme.of(context).textTheme.bodySmall,
-                            textAlign: TextAlign.right,
-                          ),
-                          const SizedBox(height: 16),
->>>>>>> dev
                             _AuthTextField(
                               controller: emailController,
                               label: 'البريد الإلكتروني',
@@ -201,12 +188,19 @@ class _LoginScreenState extends State<LoginScreen>
                                 ),
                               ),
                             ),
-                          const SizedBox(height: 10),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: _isLoading ? null : _showResetPasswordDialog,
-                              child: const Text('هل نسيت كلمة المرور؟'),
+                            const SizedBox(height: 10),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: _isLoading ? null : _showResetPasswordDialog,
+                                child: const Text('هل نسيت كلمة المرور؟'),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            _PrimaryButton(
+                              label: 'تسجيل الدخول',
+                              isLoading: _isLoading,
+                              onPressed: _isLoading ? null : _login,
                             ),
                             const SizedBox(height: 14),
                             Row(

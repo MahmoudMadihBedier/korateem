@@ -16,7 +16,6 @@ class FieldsPage extends StatefulWidget {
 class _FieldsPageState extends State<FieldsPage> {
   final searchController = TextEditingController();
   String _searchQuery = '';
-  bool _isGridView = false;
 
   @override
   void dispose() {
@@ -95,11 +94,7 @@ class _FieldsPageState extends State<FieldsPage> {
                           name: field.name,
                           location: field.address ?? 'غير محدد',
                           rating: field.rating,
-<<<<<<< feat/match-schedule-15652955682575042549
-                          price: field.pricePerHour.toStringAsFixed(0),
-=======
-                          price: '100', // Example price
->>>>>>> dev
+                          price: '${field.pricePerHour.toInt()}',
                           onTap: () => _showFieldDetails(context, field),
                         ),
                       ),
@@ -164,21 +159,18 @@ class _FieldsPageState extends State<FieldsPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            Text(
+              'السعر: ${field.pricePerHour.toInt()} ج.م/ساعة',
+              style: const TextStyle(color: Color(0xFF43A047), fontWeight: FontWeight.bold, fontSize: 16),
+              textAlign: TextAlign.right,
+            ),
             const SizedBox(height: 20),
             Text(
               field.description,
               style: const TextStyle(color: Colors.white70),
               textAlign: TextAlign.right,
             ),
-<<<<<<< feat/match-schedule-15652955682575042549
-            const SizedBox(height: 12),
-            Text(
-              'السعر: ${field.pricePerHour.toStringAsFixed(0)} ج.م / ساعة',
-              style: const TextStyle(color: Color(0xFF43A047), fontWeight: FontWeight.bold),
-              textAlign: TextAlign.right,
-            ),
-=======
->>>>>>> dev
             const SizedBox(height: 32),
             ElevatedButton(
               onPressed: () {
