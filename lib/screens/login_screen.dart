@@ -94,10 +94,9 @@ class _LoginScreenState extends State<LoginScreen>
                                     shape: BoxShape.circle,
                                     color: Colors.white.withOpacity(0.12),
                                     border: Border.all(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary
-                                          .withOpacity(0.6),
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary.withOpacity(0.6),
                                     ),
                                   ),
                                   child: const Icon(
@@ -110,17 +109,13 @@ class _LoginScreenState extends State<LoginScreen>
                               const SizedBox(height: 12),
                               Text(
                                 'كورة تيم',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .displayMedium
+                                style: Theme.of(context).textTheme.displayMedium
                                     ?.copyWith(color: Colors.white),
                               ),
                               const SizedBox(height: 6),
                               Text(
                                 'احجز ملعبك وشكّل فريقك بسرعة',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(color: Colors.white70),
                                 textAlign: TextAlign.center,
                               ),
@@ -192,15 +187,11 @@ class _LoginScreenState extends State<LoginScreen>
                             Align(
                               alignment: Alignment.centerRight,
                               child: TextButton(
-                                onPressed: _isLoading ? null : _showResetPasswordDialog,
+                                onPressed: _isLoading
+                                    ? null
+                                    : _showResetPasswordDialog,
                                 child: const Text('هل نسيت كلمة المرور؟'),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            _PrimaryButton(
-                              label: 'تسجيل الدخول',
-                              isLoading: _isLoading,
-                              onPressed: _isLoading ? null : _login,
                             ),
                             const SizedBox(height: 14),
                             Row(
@@ -212,11 +203,14 @@ class _LoginScreenState extends State<LoginScreen>
                                   ),
                                 ),
                                 Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
                                   child: Text(
                                     'أو',
-                                    style: Theme.of(context).textTheme.bodySmall,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall,
                                   ),
                                 ),
                                 const Expanded(
@@ -259,7 +253,9 @@ class _LoginScreenState extends State<LoginScreen>
                               children: [
                                 Text(
                                   'لا تملك حساب؟',
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
                                   textAlign: TextAlign.right,
                                 ),
                                 const SizedBox(height: 4),
@@ -332,9 +328,8 @@ class _LoginScreenState extends State<LoginScreen>
       builder: (context) {
         return _ResetPasswordDialog(
           initialEmail: emailController.text.trim(),
-          onSuccess: () => _showSuccess(
-            'تم إرسال رابط استعادة كلمة المرور إلى بريدك.',
-          ),
+          onSuccess: () =>
+              _showSuccess('تم إرسال رابط استعادة كلمة المرور إلى بريدك.'),
           onError: _showError,
         );
       },
@@ -470,8 +465,9 @@ class _ResetPasswordDialog extends StatefulWidget {
 }
 
 class _ResetPasswordDialogState extends State<_ResetPasswordDialog> {
-  late final TextEditingController _controller =
-      TextEditingController(text: widget.initialEmail);
+  late final TextEditingController _controller = TextEditingController(
+    text: widget.initialEmail,
+  );
   bool _sending = false;
 
   @override
@@ -507,7 +503,9 @@ class _ResetPasswordDialogState extends State<_ResetPasswordDialog> {
     return AnimatedPadding(
       duration: const Duration(milliseconds: 180),
       curve: Curves.easeOutCubic,
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: Dialog(
         backgroundColor: const Color(0xFF2A2A2A),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
