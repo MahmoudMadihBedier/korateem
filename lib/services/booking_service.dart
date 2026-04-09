@@ -26,6 +26,11 @@ abstract class IBookingService {
     required String userId,
     required String reason,
   });
+
+  Future<void> uploadPaymentScreenshot({
+    required String bookingId,
+    required String screenshotUrl,
+  });
 }
 
 class BookingService implements IBookingService {
@@ -149,5 +154,18 @@ class BookingService implements IBookingService {
       ]),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+  }
+
+  @override
+  Future<void> uploadPaymentScreenshot({
+    required String bookingId,
+    required String screenshotUrl,
+  }) async {
+    await bookings.doc(bookingId).update({
+      'paymentScreenshotUrl': screenshotUrl,
+      'paymentStatus': 'submitted',
+      'status': 'accepted', // Finalize booking after payment submission
+      'paymentAt': FieldValue.serverTimestamp(),
+    });
   }
 }

@@ -258,103 +258,123 @@ class TeamScreen extends StatelessWidget {
           );
         }
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('الفرق'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => CreateTeamPage(currentUserId: currentUserId),
-              ),
-            ),
-          ),
-        ],
+      backgroundColor: const Color(0xFF121212),
+      appBar: ModernAppBar(
+        title: 'الفرق',
+        showNotification: false,
       ),
-      body: StreamBuilder(
-        stream: teamService.getTeamsForUser(currentUserId),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            final msg = '${snapshot.error}';
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Text(
-                  msg.contains('permission-denied') ||
-                          msg.contains('PERMISSION_DENIED')
-                      ? 'لا يمكن تحميل الفرق بسبب صلاحيات Firebase. انشر قواعد Firestore من `FIREBASE_DEPLOY_RULES.md`.'
-                      : 'حدث خطأ أثناء تحميل الفرق',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            );
-          }
-          if (!snapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
-          }
-          var teams = snapshot.data!.docs;
-          if (teams.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('لا توجد فرق'),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>
-                            CreateTeamPage(currentUserId: currentUserId),
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      minimumSize: const Size(160, 44),
-                    ),
-                    child: const Text('إنشاء فريق'),
-                  ),
-                ],
-              ),
-            );
-          }
-          return ListView.builder(
-            itemCount: teams.length,
-            itemBuilder: (context, index) {
-              final model = TeamModel.fromFirestore(teams[index]);
-              return Card(
-                margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-                child: ListTile(
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: _teamImage(model, width: 52, height: 52),
-                  ),
-                  title: Text(
-                    model.name,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  subtitle: Text('عدد الأعضاء: ${model.memberIds.length}'),
-                  onTap: () {
-                    _showTeamDetails(context, model);
-                  },
-                ),
-              );
-            },
-          );
-        },
-      ),
-      floatingActionButton: currentUserId.trim().isEmpty
-          ? null
-          : FloatingActionButton(
-              heroTag: 'fab_team',
-              onPressed: () => Navigator.push(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: ModernCard(
+              onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (_) => CreateTeamPage(currentUserId: currentUserId),
                 ),
               ),
-              child: const Icon(Icons.add),
+              backgroundColor: const Color(0xFF43A047).withValues(alpha: 0.1),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF43A047),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.add, color: Colors.white),
+                  ),
+                  const SizedBox(width: 16),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          'إنشاء فريق جديد',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        Text(
+                          'كون فريقك الخاص والعب مع أصدقائك',
+                          style: TextStyle(color: Colors.white70, fontSize: 12),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
+          ),
+          Expanded(
+            child: StreamBuilder(
+              stream: teamService.getTeamsForUser(currentUserId),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return const Center(child: Text('حدث خطأ أثناء تحميل الفرق'));
+                }
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                var teams = snapshot.data!.docs;
+                if (teams.isEmpty) {
+                  return const EmptyState(
+                    icon: Icons.group_off_outlined,
+                    title: 'لا توجد فرق',
+                    subtitle: 'ابدأ بإنشاء فريقك الأول الآن',
+                  );
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: teams.length,
+                  itemBuilder: (context, index) {
+                    final model = TeamModel.fromFirestore(teams[index]);
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: ModernCard.glass(
+                        onTap: () => _showTeamDetails(context, model),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.arrow_back_ios, size: 14, color: Colors.grey),
+                            const Spacer(),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    model.name,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  Text(
+                                    'عدد الأعضاء: ${model.memberIds.length}',
+                                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: _teamImage(model, width: 60, height: 60),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
       },
     );
