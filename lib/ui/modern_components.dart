@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
+import 'dart:convert';
 
 class GlassContainer extends StatelessWidget {
   final Widget child;
@@ -345,6 +346,8 @@ class StadiumCard extends StatelessWidget {
   final String location;
   final double rating;
   final String price;
+  final String? image;
+  final List<String> photos;
   final VoidCallback? onTap;
 
   const StadiumCard({
@@ -353,76 +356,133 @@ class StadiumCard extends StatelessWidget {
     required this.location,
     required this.rating,
     required this.price,
+    this.image,
+    this.photos = const [],
     this.onTap,
   }) : super(key: key);
 
+  ImageProvider _photoProvider(String value) {
+    final v = value.trim();
+    if (v.isEmpty) return const AssetImage('assets/images/studim.jpeg');
+    if (v.startsWith('http://') || v.startsWith('https://')) {
+      return NetworkImage(v);
+    }
+    try {
+      final cleaned = v.startsWith('data:image')
+          ? v.substring(v.indexOf('base64,') + 'base64,'.length)
+          : v;
+      final bytes = base64.decode(cleaned);
+      return MemoryImage(bytes);
+    } catch (_) {
+      return const AssetImage('assets/images/studim.jpeg');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final displayImage = image ?? (photos.isNotEmpty ? photos.first : '');
     return ModernCard.glass(
       onTap: onTap,
+      padding: EdgeInsets.zero,
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Stack(
             children: [
-              Row(
-                children: [
-                  Icon(Icons.star, color: Color(0xFF43A047), size: 16),
-                  SizedBox(width: 4),
-                  Text(
-                    '$rating',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF43A047),
-                    ),
-                  ),
-                ],
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                child: Image(
+                  image: _photoProvider(displayImage),
+                  height: 150,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                ),
               ),
-              Expanded(
-                child: Text(
+              Positioned(
+                top: 12,
+                left: 12,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.6),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.star, color: Color(0xFFFF9800), size: 14),
+                      const SizedBox(width: 4),
+                      Text(
+                        rating.toStringAsFixed(1),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
                   name,
                   textAlign: TextAlign.right,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w600,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
                     color: Colors.white,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Icon(Icons.location_on, size: 14, color: Color(0xFF808080)),
-              SizedBox(width: 4),
-              Text(
-                location,
-                style: TextStyle(fontSize: 12, color: Color(0xFF808080)),
-              ),
-            ],
-          ),
-          SizedBox(height: 12),
-          Divider(color: Color(0xFF404040), height: 1),
-          SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                price,
-                style: TextStyle(
-                  color: Color(0xFF43A047),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      location,
+                      style: const TextStyle(fontSize: 12, color: Color(0xFF808080)),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(Icons.location_on, size: 14, color: Color(0xFF43A047)),
+                  ],
                 ),
-              ),
-              Text(
-                'ساعة',
-                style: TextStyle(fontSize: 12, color: Color(0xFF808080)),
-              ),
-            ],
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF43A047).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '$price ج.م / ساعة',
+                        style: const TextStyle(
+                          color: Color(0xFF43A047),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    const Text(
+                      'احجز الآن',
+                      style: TextStyle(
+                        color: Color(0xFF43A047),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),

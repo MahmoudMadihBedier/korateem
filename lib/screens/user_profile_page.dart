@@ -6,6 +6,7 @@ import 'dart:io';
 import '../ui/modern_components.dart';
 import '../../features/user/data/repositories/user_repository.dart';
 import '../../features/user/data/models/user_model.dart';
+import '../services/booking_service.dart';
 
 class UserProfilePage extends StatefulWidget {
   final String userId;
@@ -18,6 +19,7 @@ class UserProfilePage extends StatefulWidget {
 
 class _UserProfilePageState extends State<UserProfilePage> {
   late UserRepository _userRepository;
+  late BookingService _bookingService;
   UserModel? _user;
   bool _isLoading = false;
   late ImagePicker _imagePicker;
@@ -26,8 +28,108 @@ class _UserProfilePageState extends State<UserProfilePage> {
   void initState() {
     super.initState();
     _userRepository = UserRepository();
+    _bookingService = BookingService();
     _imagePicker = ImagePicker();
     _loadUserProfile();
+  }
+
+  Future<void> _handlePaymentUpload(String bookingId) async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+
+      if (image != null) {
+        setState(() => _isLoading = true);
+
+        final File imageFile = File(image.path);
+        final String fileName =
+            'payment_${bookingId}_${DateTime.now().millisecondsSinceEpoch}';
+        final Reference ref = FirebaseStorage.instance.ref().child(
+          'payments/$fileName',
+        );
+
+        await ref.putFile(imageFile);
+        final String downloadUrl = await ref.getDownloadURL();
+
+        await _bookingService.uploadPaymentScreenshot(
+          bookingId: bookingId,
+          screenshotUrl: downloadUrl,
+        );
+
+        setState(() => _isLoading = false);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('تم رفع إثبات الدفع بنجاح'),
+              backgroundColor: Color(0xFF43A047),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('خطأ في رفع الصورة: $e'),
+            backgroundColor: const Color(0xFFCF6679),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _showPaymentDetails(Map<String, dynamic> booking) async {
+    final stadiumId = booking['stadiumId'];
+    final stadiumDoc = await FirebaseFirestore.instance.collection('stadiums').doc(stadiumId).get();
+    final stadiumData = stadiumDoc.data();
+
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              const Text(
+                'بيانات الدفع',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+              const SizedBox(height: 16),
+              if (stadiumData?['instapayNumber'] != null) ...[
+                Text('InstaPay: ${stadiumData!['instapayNumber']}', style: const TextStyle(color: Colors.white70)),
+                const SizedBox(height: 8),
+              ],
+              if (stadiumData?['vodafoneCashNumber'] != null) ...[
+                Text('Vodafone Cash: ${stadiumData!['vodafoneCashNumber']}', style: const TextStyle(color: Colors.white70)),
+                const SizedBox(height: 8),
+              ],
+              const Divider(color: Colors.white24),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _handlePaymentUpload(booking['id']);
+                  },
+                  child: const Text('رفع إثبات الدفع'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _loadUserProfile() async {
@@ -175,13 +277,23 @@ class _UserProfilePageState extends State<UserProfilePage> {
             // Stats Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildStatCard('12', 'مباراة'),
-                  _buildStatCard('8', 'صديق'),
-                  _buildStatCard('4', 'حجوزة'),
-                ],
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('bookings')
+                    .where('userId', isEqualTo: widget.userId)
+                    .snapshots(),
+                builder: (context, bookingSnapshot) {
+                  final bookingCount = bookingSnapshot.hasData ? bookingSnapshot.data!.docs.length : 0;
+                  final friendCount = _user!.friends.length;
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildStatCard('$bookingCount', 'حجوزات'),
+                      _buildStatCard('$friendCount', 'أصدقاء'),
+                      _buildStatCard(_user!.rating.toStringAsFixed(1), 'تقييم'),
+                    ],
+                  );
+                },
               ),
             ),
             const SizedBox(height: 24),
@@ -464,11 +576,20 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         ],
                       ),
                     ),
-                    Text(
-                      '${booking['time']}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: const Color(0xFF43A047),
-                      ),
+                    Column(
+                      children: [
+                        Text(
+                          '${booking['time']}',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: const Color(0xFF43A047),
+                          ),
+                        ),
+                        if (booking['status'] == 'waiting_payment' && booking['paymentStatus'] == null)
+                          TextButton(
+                            onPressed: () => _showPaymentDetails({...booking, 'id': doc.id}),
+                            child: const Text('دفع', style: TextStyle(fontSize: 12)),
+                          ),
+                      ],
                     ),
                   ],
                 ),

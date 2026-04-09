@@ -100,7 +100,7 @@ class OwnerService implements IOwnerService {
       throw ArgumentError('bookingId must not be empty');
     }
     await bookings.doc(bookingId).set({
-      'status': 'accepted',
+      'status': 'waiting_payment',
       'rejectionReason': FieldValue.delete(),
       'acceptedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));

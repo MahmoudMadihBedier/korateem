@@ -10,6 +10,9 @@ class StadiumEntity {
   final String? address;
   final String? phone;
   final double pricePerHour;
+  final String? instapayNumber;
+  final String? instapayQr;
+  final String? vodafoneCashNumber;
 
   StadiumEntity({
     required this.id,
@@ -23,5 +26,8 @@ class StadiumEntity {
     this.address,
     this.phone,
     this.pricePerHour = 0.0,
+    this.instapayNumber,
+    this.instapayQr,
+    this.vodafoneCashNumber,
   });
 }
