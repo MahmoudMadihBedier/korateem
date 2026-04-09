@@ -24,6 +24,7 @@ class _StadiumBookingsReviewPageState extends State<StadiumBookingsReviewPage> {
   Color _statusColor(String status) {
     switch (status.trim().toLowerCase()) {
       case 'accepted':
+      case 'waiting_payment':
         return const Color(0xFF43A047);
       case 'rejected':
         return const Color(0xFFCF6679);
@@ -37,7 +38,9 @@ class _StadiumBookingsReviewPageState extends State<StadiumBookingsReviewPage> {
   String _statusLabel(String status) {
     switch (status.trim().toLowerCase()) {
       case 'accepted':
-        return 'مقبول';
+        return 'تم الحجز';
+      case 'waiting_payment':
+        return 'بانتظار الدفع';
       case 'rejected':
         return 'مرفوض';
       case 'canceled':
@@ -172,6 +175,9 @@ class _StadiumBookingsReviewPageState extends State<StadiumBookingsReviewPage> {
               final data = doc.data() as Map<String, dynamic>;
 
               final status = (data['status'] ?? 'pending').toString();
+              final paymentScreenshotUrl = data['paymentScreenshotUrl'] as String?;
+              final paymentMethod = data['paymentMethod'] as String?;
+              final paymentStatus = data['paymentStatus'] as String?;
               final statusColor = _statusColor(status);
               final dateLabel = _formatDate(data['date']);
               final time = (data['time'] ?? '—').toString();
@@ -233,6 +239,65 @@ class _StadiumBookingsReviewPageState extends State<StadiumBookingsReviewPage> {
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: const Color(0xFFCF6679),
                             ),
+                      ),
+                    ],
+                    if (paymentScreenshotUrl != null) ...[
+                      const SizedBox(height: 12),
+                      if (paymentMethod != null) ...[
+                        Text(
+                          'طريقة الدفع: $paymentMethod',
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(color: Colors.white70, fontSize: 13),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          if (paymentStatus == 'submitted')
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.blue.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text('تم الرفع', style: TextStyle(color: Colors.blue, fontSize: 10)),
+                            ),
+                          const Text(
+                            'إثبات الدفع:',
+                            textAlign: TextAlign.right,
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => Dialog(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Image.network(paymentScreenshotUrl),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context),
+                                    child: const Text('إغلاق'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            paymentScreenshotUrl,
+                            height: 100,
+                            width: 100,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
                     ],
                     if (phone.trim().isNotEmpty) ...[

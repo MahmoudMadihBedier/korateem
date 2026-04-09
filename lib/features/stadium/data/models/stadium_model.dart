@@ -13,6 +13,9 @@ class StadiumModel extends StadiumEntity {
     super.address,
     super.phone,
     super.pricePerHour,
+    super.instapayNumber,
+    super.instapayQr,
+    super.vodafoneCashNumber,
   });
 
   factory StadiumModel.fromFirestore(Map<String, dynamic> json, String id) {
@@ -28,6 +31,9 @@ class StadiumModel extends StadiumEntity {
       address: json['address'] ?? json['location'],
       phone: json['phone'],
       pricePerHour: (json['pricePerHour'] ?? json['price'] ?? 0.0).toDouble(),
+      instapayNumber: json['instapayNumber'],
+      instapayQr: json['instapayQr'],
+      vodafoneCashNumber: json['vodafoneCashNumber'],
     );
   }
 
@@ -43,6 +49,9 @@ class StadiumModel extends StadiumEntity {
       'address': address,
       'phone': phone,
       'pricePerHour': pricePerHour,
+      'instapayNumber': instapayNumber,
+      'instapayQr': instapayQr,
+      'vodafoneCashNumber': vodafoneCashNumber,
     };
   }
 }

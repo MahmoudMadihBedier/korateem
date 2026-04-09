@@ -5,6 +5,10 @@ abstract class IOwnerService {
     String ownerId,
     Map<String, dynamic> stadiumData,
   );
+  Future<void> updateStadiumProfile(
+    String stadiumId,
+    Map<String, dynamic> stadiumData,
+  );
   Future<void> addStadiumPhotos(String stadiumId, List<String> photoUrls);
   Future<void> updateStadiumDescription(String stadiumId, String description);
   Future<void> setStadiumAvailability(
@@ -36,6 +40,14 @@ class OwnerService implements IOwnerService {
     Map<String, dynamic> stadiumData,
   ) async {
     await stadiums.add({...stadiumData, 'ownerId': ownerId});
+  }
+
+  @override
+  Future<void> updateStadiumProfile(
+    String stadiumId,
+    Map<String, dynamic> stadiumData,
+  ) async {
+    await stadiums.doc(stadiumId).update(stadiumData);
   }
 
   @override
@@ -100,7 +112,7 @@ class OwnerService implements IOwnerService {
       throw ArgumentError('bookingId must not be empty');
     }
     await bookings.doc(bookingId).set({
-      'status': 'accepted',
+      'status': 'waiting_payment',
       'rejectionReason': FieldValue.delete(),
       'acceptedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));

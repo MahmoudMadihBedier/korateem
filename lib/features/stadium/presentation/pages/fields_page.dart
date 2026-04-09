@@ -46,7 +46,10 @@ class _FieldsPageState extends State<FieldsPage> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF121212),
-      appBar: ModernAppBar(title: 'الملاعب المتاحة', showNotification: false),
+      appBar: ModernAppBar(
+        title: 'الملاعب المتاحة',
+        showNotification: false,
+      ),
       body: Column(
         children: [
           Padding(
@@ -75,27 +78,28 @@ class _FieldsPageState extends State<FieldsPage> {
                 }
 
                 final fields = snapshot.data!.where((field) {
-                  return field.name.toLowerCase().contains(
-                    _searchQuery.toLowerCase(),
-                  );
+                  return field.name.toLowerCase().contains(_searchQuery.toLowerCase());
                 }).toList();
 
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                return GridView.builder(
+                  padding: const EdgeInsets.all(16),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 1,
+                    childAspectRatio: 1.3,
+                    mainAxisSpacing: 16,
+                  ),
                   itemCount: fields.length,
                   itemBuilder: (context, index) {
                     final field = fields[index];
                     return AnimatedListItem(
                       delay: Duration(milliseconds: index * 50),
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: StadiumCard(
-                          name: field.name,
-                          location: field.address ?? 'غير محدد',
-                          rating: field.rating,
-                          price: field.pricePerHour.toStringAsFixed(0),
-                          onTap: () => _showFieldDetails(context, field),
-                        ),
+                      child: StadiumCard(
+                        name: field.name,
+                        location: field.address ?? 'غير محدد',
+                        rating: field.rating,
+                        price: '${field.pricePerHour.toInt()}',
+                        photos: field.photos,
+                        onTap: () => _showFieldDetails(context, field),
                       ),
                     );
                   },
@@ -109,7 +113,7 @@ class _FieldsPageState extends State<FieldsPage> {
   }
 
   void _showFieldDetails(BuildContext context, StadiumEntity field) {
-    showModalBottomSheet(
+     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
@@ -126,9 +130,7 @@ class _FieldsPageState extends State<FieldsPage> {
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
               child: Image(
-                image: _photoProvider(
-                  field.photos.isNotEmpty ? field.photos.first : '',
-                ),
+                image: _photoProvider(field.photos.isNotEmpty ? field.photos.first : ''),
                 height: 200,
                 fit: BoxFit.cover,
               ),
@@ -136,9 +138,7 @@ class _FieldsPageState extends State<FieldsPage> {
             const SizedBox(height: 20),
             Text(
               field.name,
-              style: Theme.of(
-                context,
-              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               textAlign: TextAlign.right,
             ),
             const SizedBox(height: 12),
@@ -146,20 +146,14 @@ class _FieldsPageState extends State<FieldsPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: const Color(0xFF43A047).withOpacity(0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     '⭐ ${field.rating}',
-                    style: const TextStyle(
-                      color: Color(0xFF43A047),
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(color: Color(0xFF43A047), fontWeight: FontWeight.bold),
                   ),
                 ),
                 Text(
@@ -174,13 +168,10 @@ class _FieldsPageState extends State<FieldsPage> {
               style: const TextStyle(color: Color(0xFF43A047), fontWeight: FontWeight.bold, fontSize: 16),
               textAlign: TextAlign.right,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
             Text(
-              'السعر: ${field.pricePerHour.toStringAsFixed(0)} ج.م / ساعة',
-              style: const TextStyle(
-                color: Color(0xFF43A047),
-                fontWeight: FontWeight.bold,
-              ),
+              field.description,
+              style: const TextStyle(color: Colors.white70),
               textAlign: TextAlign.right,
             ),
             const SizedBox(height: 32),
@@ -189,9 +180,7 @@ class _FieldsPageState extends State<FieldsPage> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(
-                    builder: (context) => BookingScreen(stadiumId: field.id),
-                  ),
+                  MaterialPageRoute(builder: (context) => BookingScreen(stadiumId: field.id)),
                 );
               },
               child: const Text('احجز الآن'),

@@ -16,4 +16,9 @@ class StadiumRepositoryImpl implements IStadiumRepository {
   Future<StadiumEntity> getStadiumById(String id) {
     return remoteDataSource.getStadium(id);
   }
+
+  @override
+  Future<void> rateStadium(String stadiumId, double rating) {
+    return remoteDataSource.rateStadium(stadiumId, rating);
+  }
 }

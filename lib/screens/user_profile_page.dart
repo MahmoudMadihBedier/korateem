@@ -6,6 +6,7 @@ import 'dart:io';
 import '../ui/modern_components.dart';
 import '../../features/user/data/repositories/user_repository.dart';
 import '../../features/user/data/models/user_model.dart';
+import '../services/booking_service.dart';
 
 class UserProfilePage extends StatefulWidget {
   final String userId;
@@ -28,6 +29,193 @@ class _UserProfilePageState extends State<UserProfilePage> {
     _userRepository = UserRepository();
     _imagePicker = ImagePicker();
     _loadUserProfile();
+  }
+
+  Future<void> _handlePaymentUpload(String bookingId, String method) async {
+    try {
+      final XFile? image = await _imagePicker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+
+      if (image != null) {
+        setState(() => _isLoading = true);
+
+        final File imageFile = File(image.path);
+        final String fileName =
+            'payment_${bookingId}_${DateTime.now().millisecondsSinceEpoch}';
+        final Reference ref = FirebaseStorage.instance.ref().child(
+          'payments/$fileName',
+        );
+
+        await ref.putFile(imageFile);
+        final String downloadUrl = await ref.getDownloadURL();
+
+        await FirebaseFirestore.instance.collection('bookings').doc(bookingId).update({
+          'paymentScreenshotUrl': downloadUrl,
+          'paymentMethod': method,
+          'paymentStatus': 'submitted',
+          'status': 'accepted',
+          'paymentAt': FieldValue.serverTimestamp(),
+        });
+
+        setState(() => _isLoading = false);
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('تم رفع إثبات الدفع بنجاح'),
+              backgroundColor: Color(0xFF43A047),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('خطأ في رفع الصورة: $e'),
+            backgroundColor: const Color(0xFFCF6679),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _showPaymentDetails(Map<String, dynamic> booking) async {
+    final stadiumId = booking['stadiumId'];
+    final stadiumDoc = await FirebaseFirestore.instance.collection('stadiums').doc(stadiumId).get();
+    final stadiumData = stadiumDoc.data();
+
+    if (!mounted) return;
+
+    final instapay = stadiumData?['instapayNumber'] as String?;
+    final vodafone = stadiumData?['vodafoneCashNumber'] as String?;
+
+    if ((instapay == null || instapay.isEmpty) && (vodafone == null || vodafone.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('صاحب الملعب لم يقم بإضافة طرق دفع بعد')),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          String? selectedMethod;
+          return Dialog(
+            backgroundColor: const Color(0xFF1E1E1E),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    'اختر طريقة الدفع',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  const SizedBox(height: 16),
+                  if (instapay != null && instapay.isNotEmpty)
+                    Column(
+                      children: [
+                        _buildPaymentOption(
+                          icon: Icons.account_balance_wallet,
+                          title: 'InstaPay',
+                          subtitle: instapay,
+                          isSelected: selectedMethod == 'InstaPay',
+                          onTap: () => setDialogState(() => selectedMethod = 'InstaPay'),
+                        ),
+                        if (selectedMethod == 'InstaPay' && stadiumData?['instapayQr'] != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                stadiumData!['instapayQr'],
+                                height: 200,
+                                width: 200,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  if (vodafone != null && vodafone.isNotEmpty)
+                    _buildPaymentOption(
+                      icon: Icons.phone_android,
+                      title: 'Vodafone Cash',
+                      subtitle: vodafone,
+                      isSelected: selectedMethod == 'Vodafone Cash',
+                      onTap: () => setDialogState(() => selectedMethod = 'Vodafone Cash'),
+                    ),
+                  const SizedBox(height: 20),
+                  const Divider(color: Colors.white24),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: selectedMethod == null
+                          ? null
+                          : () {
+                              Navigator.pop(context);
+                              _handlePaymentUpload(booking['id'], selectedMethod!);
+                            },
+                      child: const Text('دفع ورفع الإثبات'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPaymentOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF43A047).withValues(alpha: 0.15) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF43A047) : const Color(0xFF404040),
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            if (isSelected)
+              const Icon(Icons.check_circle, color: Color(0xFF43A047), size: 20)
+            else
+              const Icon(Icons.circle_outlined, color: Color(0xFF808080), size: 20),
+            const Spacer(),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              ],
+            ),
+            const SizedBox(width: 12),
+            Icon(icon, color: const Color(0xFF43A047)),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _loadUserProfile() async {
@@ -175,13 +363,23 @@ class _UserProfilePageState extends State<UserProfilePage> {
             // Stats Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _buildStatCard('12', 'مباراة'),
-                  _buildStatCard('8', 'صديق'),
-                  _buildStatCard('4', 'حجوزة'),
-                ],
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('bookings')
+                    .where('userId', isEqualTo: widget.userId)
+                    .snapshots(),
+                builder: (context, bookingSnapshot) {
+                  final bookingCount = bookingSnapshot.hasData ? bookingSnapshot.data!.docs.length : 0;
+                  final friendCount = _user!.friends.length;
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _buildStatCard('$bookingCount', 'حجوزات'),
+                      _buildStatCard('$friendCount', 'أصدقاء'),
+                      _buildStatCard(_user!.rating.toStringAsFixed(1), 'تقييم'),
+                    ],
+                  );
+                },
               ),
             ),
             const SizedBox(height: 24),
@@ -464,11 +662,20 @@ class _UserProfilePageState extends State<UserProfilePage> {
                         ],
                       ),
                     ),
-                    Text(
-                      '${booking['time']}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: const Color(0xFF43A047),
-                      ),
+                    Column(
+                      children: [
+                        Text(
+                          '${booking['time']}',
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: const Color(0xFF43A047),
+                          ),
+                        ),
+                        if (booking['status'] == 'waiting_payment' && booking['paymentStatus'] == null)
+                          TextButton(
+                            onPressed: () => _showPaymentDetails({...booking, 'id': doc.id}),
+                            child: const Text('دفع', style: TextStyle(fontSize: 12)),
+                          ),
+                      ],
                     ),
                   ],
                 ),

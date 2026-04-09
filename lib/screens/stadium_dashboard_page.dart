@@ -6,6 +6,7 @@ import 'package:korateem/services/user_role_service.dart';
 import 'package:korateem/screens/stadium_bookings_review_page.dart';
 import 'package:korateem/screens/stadium_photos_page.dart';
 import 'package:korateem/screens/stadium_schedule_page.dart';
+import 'package:korateem/screens/stadium_profile_page.dart';
 import '../ui/modern_components.dart';
 import '../../services/owner_service.dart';
 
@@ -217,6 +218,24 @@ class _StadiumDashboardPageState extends State<StadiumDashboardPage> {
                                       stadiumId: stadiumId,
                                       stadiumName: (stadium['name'] ?? 'ملعب')
                                           .toString(),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _buildActionButton(
+                                icon: Icons.edit,
+                                label: 'تعديل',
+                                color: Colors.blue,
+                                onTap: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => StadiumProfilePage(
+                                      ownerId: widget.ownerId,
+                                      stadiumId: stadiumId,
+                                      initialData: stadium,
                                     ),
                                   ),
                                 ),
