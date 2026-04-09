@@ -19,7 +19,6 @@ class UserProfilePage extends StatefulWidget {
 
 class _UserProfilePageState extends State<UserProfilePage> {
   late UserRepository _userRepository;
-  late BookingService _bookingService;
   UserModel? _user;
   bool _isLoading = false;
   late ImagePicker _imagePicker;
@@ -28,12 +27,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
   void initState() {
     super.initState();
     _userRepository = UserRepository();
-    _bookingService = BookingService();
     _imagePicker = ImagePicker();
     _loadUserProfile();
   }
 
-  Future<void> _handlePaymentUpload(String bookingId) async {
+  Future<void> _handlePaymentUpload(String bookingId, String method) async {
     try {
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
@@ -53,10 +51,13 @@ class _UserProfilePageState extends State<UserProfilePage> {
         await ref.putFile(imageFile);
         final String downloadUrl = await ref.getDownloadURL();
 
-        await _bookingService.uploadPaymentScreenshot(
-          bookingId: bookingId,
-          screenshotUrl: downloadUrl,
-        );
+        await FirebaseFirestore.instance.collection('bookings').doc(bookingId).update({
+          'paymentScreenshotUrl': downloadUrl,
+          'paymentMethod': method,
+          'paymentStatus': 'submitted',
+          'status': 'accepted',
+          'paymentAt': FieldValue.serverTimestamp(),
+        });
 
         setState(() => _isLoading = false);
 
@@ -89,44 +90,129 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
     if (!mounted) return;
 
+    final instapay = stadiumData?['instapayNumber'] as String?;
+    final vodafone = stadiumData?['vodafoneCashNumber'] as String?;
+
+    if ((instapay == null || instapay.isEmpty) && (vodafone == null || vodafone.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('صاحب الملعب لم يقم بإضافة طرق دفع بعد')),
+      );
+      return;
+    }
+
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        backgroundColor: const Color(0xFF1E1E1E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              const Text(
-                'بيانات الدفع',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          String? selectedMethod;
+          return Dialog(
+            backgroundColor: const Color(0xFF1E1E1E),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  const Text(
+                    'اختر طريقة الدفع',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  const SizedBox(height: 16),
+                  if (instapay != null && instapay.isNotEmpty)
+                    Column(
+                      children: [
+                        _buildPaymentOption(
+                          icon: Icons.account_balance_wallet,
+                          title: 'InstaPay',
+                          subtitle: instapay,
+                          isSelected: selectedMethod == 'InstaPay',
+                          onTap: () => setDialogState(() => selectedMethod = 'InstaPay'),
+                        ),
+                        if (selectedMethod == 'InstaPay' && stadiumData?['instapayQr'] != null)
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: Image.network(
+                                stadiumData!['instapayQr'],
+                                height: 200,
+                                width: 200,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  if (vodafone != null && vodafone.isNotEmpty)
+                    _buildPaymentOption(
+                      icon: Icons.phone_android,
+                      title: 'Vodafone Cash',
+                      subtitle: vodafone,
+                      isSelected: selectedMethod == 'Vodafone Cash',
+                      onTap: () => setDialogState(() => selectedMethod = 'Vodafone Cash'),
+                    ),
+                  const SizedBox(height: 20),
+                  const Divider(color: Colors.white24),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: selectedMethod == null
+                          ? null
+                          : () {
+                              Navigator.pop(context);
+                              _handlePaymentUpload(booking['id'], selectedMethod!);
+                            },
+                      child: const Text('دفع ورفع الإثبات'),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              if (stadiumData?['instapayNumber'] != null) ...[
-                Text('InstaPay: ${stadiumData!['instapayNumber']}', style: const TextStyle(color: Colors.white70)),
-                const SizedBox(height: 8),
-              ],
-              if (stadiumData?['vodafoneCashNumber'] != null) ...[
-                Text('Vodafone Cash: ${stadiumData!['vodafoneCashNumber']}', style: const TextStyle(color: Colors.white70)),
-                const SizedBox(height: 8),
-              ],
-              const Divider(color: Colors.white24),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _handlePaymentUpload(booking['id']);
-                  },
-                  child: const Text('رفع إثبات الدفع'),
-                ),
-              ),
-            ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPaymentOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF43A047).withValues(alpha: 0.15) : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF43A047) : const Color(0xFF404040),
+            width: 1.5,
           ),
+        ),
+        child: Row(
+          children: [
+            if (isSelected)
+              const Icon(Icons.check_circle, color: Color(0xFF43A047), size: 20)
+            else
+              const Icon(Icons.circle_outlined, color: Color(0xFF808080), size: 20),
+            const Spacer(),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                Text(subtitle, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+              ],
+            ),
+            const SizedBox(width: 12),
+            Icon(icon, color: const Color(0xFF43A047)),
+          ],
         ),
       ),
     );

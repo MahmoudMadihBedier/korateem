@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../domain/repositories/matches_repository.dart';
 import '../../domain/entities/match_entity.dart';
-import 'package:korateem/ui/modern_components.dart';
 
 class MatchDetailsPopup extends StatelessWidget {
   final MatchEntity match;

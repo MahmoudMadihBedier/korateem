@@ -176,6 +176,7 @@ class _StadiumBookingsReviewPageState extends State<StadiumBookingsReviewPage> {
 
               final status = (data['status'] ?? 'pending').toString();
               final paymentScreenshotUrl = data['paymentScreenshotUrl'] as String?;
+              final paymentMethod = data['paymentMethod'] as String?;
               final paymentStatus = data['paymentStatus'] as String?;
               final statusColor = _statusColor(status);
               final dateLabel = _formatDate(data['date']);
@@ -242,6 +243,14 @@ class _StadiumBookingsReviewPageState extends State<StadiumBookingsReviewPage> {
                     ],
                     if (paymentScreenshotUrl != null) ...[
                       const SizedBox(height: 12),
+                      if (paymentMethod != null) ...[
+                        Text(
+                          'طريقة الدفع: $paymentMethod',
+                          textAlign: TextAlign.right,
+                          style: const TextStyle(color: Colors.white70, fontSize: 13),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
