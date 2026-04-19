@@ -56,7 +56,7 @@ class _LoginScreenState extends State<LoginScreen>
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset('assets/images/image.png', fit: BoxFit.cover),
+                  Image.asset('assets/images/studim.jpeg', fit: BoxFit.cover),
                   DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -102,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen>
                                   ),
                                   child: ClipOval(
                                     child: Image.asset(
-                                      'assets/images/image.png',
+                                      'assets/images/koraa_icon_48x48.png',
                                       fit: BoxFit.cover,
                                       errorBuilder: (_, __, ___) => const Icon(
                                         Icons.sports_soccer,

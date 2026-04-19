@@ -182,7 +182,7 @@ class _HomeTabPageState extends State<HomeTabPage>
                 ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: Image.asset(
-                    'assets/images/image.png',
+                    'assets/images/koraa_icon_48x48.png',
                     height: 32,
                     width: 32,
                     fit: BoxFit.cover,
@@ -220,7 +220,7 @@ class _HomeTabPageState extends State<HomeTabPage>
                 fit: StackFit.expand,
                 children: [
                   Image.asset(
-                    'assets/images/image.png',
+                    'assets/images/studim.jpeg',
                     fit: BoxFit.cover,
                     cacheWidth: 1080,
                     cacheHeight: 720,
@@ -473,7 +473,7 @@ class _HomeTabPageState extends State<HomeTabPage>
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.asset('assets/images/image.png', fit: BoxFit.cover),
+                Image.asset('assets/images/studim.jpeg', fit: BoxFit.cover),
                 DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
