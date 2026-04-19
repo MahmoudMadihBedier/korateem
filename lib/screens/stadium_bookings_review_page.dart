@@ -27,12 +27,9 @@ class _StadiumBookingsReviewPageState extends State<StadiumBookingsReviewPage> {
       case 'waiting_payment':
       case 'payment_submitted':
       case 'confirmed':
-      case 'payment_submitted':
         return const Color(0xFF43A047);
       case 'rejected':
         return const Color(0xFFCF6679);
-      case 'confirmed':
-        return 'تم التأكيد';
       case 'canceled':
         return const Color(0xFF808080);
       default:
@@ -42,13 +39,14 @@ class _StadiumBookingsReviewPageState extends State<StadiumBookingsReviewPage> {
 
   String _statusLabel(String status) {
     switch (status.trim().toLowerCase()) {
+      case 'pending':
+        return 'قيد المراجعة';
       case 'accepted':
         return 'تم الحجز';
       case 'waiting_payment':
+        return 'بانتظار الدفع';
       case 'payment_submitted':
-      case 'confirmed':
-      case 'payment_submitted':
-        return status.toLowerCase() == 'payment_submitted' ? 'تم رفع الدفع' : 'بانتظار الدفع';
+        return 'تم رفع الدفع';
       case 'rejected':
         return 'مرفوض';
       case 'confirmed':
@@ -355,7 +353,7 @@ class _StadiumBookingsReviewPageState extends State<StadiumBookingsReviewPage> {
                           ),
                         ],
                       ),
-                    ]
+                    ],
                     if (status.toLowerCase() == 'payment_submitted') ...[
                       const SizedBox(height: 12),
                       ElevatedButton(

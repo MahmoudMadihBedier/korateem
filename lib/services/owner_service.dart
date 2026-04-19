@@ -134,4 +134,16 @@ class OwnerService implements IOwnerService {
       'rejectedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
+
+  @override
+  Future<void> confirmBooking(String bookingId) async {
+    if (bookingId.trim().isEmpty) {
+      throw ArgumentError('bookingId must not be empty');
+    }
+    await bookings.doc(bookingId).set({
+      'status': 'confirmed',
+      'paymentStatus': 'confirmed',
+      'confirmedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
 }

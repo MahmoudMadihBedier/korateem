@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:korateem/services/booking_service.dart';
 import 'package:korateem/services/user_service.dart';
 import 'package:korateem/services/field_service.dart';
 import 'package:korateem/ui/modern_components.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:korateem/features/stadium/data/models/stadium_model.dart';
-import 'package:korateem/core/config.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String uid;
@@ -574,6 +574,10 @@ class _ActivityTabState extends State<_ActivityTab> {
       case 'approved':
       case 'confirmed':
         return const Color(0xFF43A047);
+      case 'waiting_payment':
+        return const Color(0xFF2196F3);
+      case 'payment_submitted':
+        return const Color(0xFF9C27B0);
       case 'rejected':
         return const Color(0xFFCF6679);
       case 'canceled':
@@ -599,25 +603,6 @@ class _ActivityTabState extends State<_ActivityTab> {
         return 'ملغي';
       default:
         return 'قيد المراجعة';
-    }
-  }
-
-  Color _statusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'accepted':
-      case 'approved':
-      case 'confirmed':
-        return const Color(0xFF43A047);
-      case 'waiting_payment':
-        return const Color(0xFF2196F3);
-      case 'payment_submitted':
-        return const Color(0xFF9C27B0);
-      case 'rejected':
-        return const Color(0xFFCF6679);
-      case 'canceled':
-        return const Color(0xFF808080);
-      default:
-        return const Color(0xFFFFA500);
     }
   }
 
@@ -658,10 +643,12 @@ class _ActivityTabState extends State<_ActivityTab> {
           final stadium = StadiumModel.fromFirestore(
               snapshot.data!.data() as Map<String, dynamic>, snapshot.data!.id);
 
+          XFile? selectedImage;
+          bool uploading = false;
+
           return StatefulBuilder(
             builder: (context, setState) {
-              XFile? selectedImage;
-              bool uploading = false;
+              final image = selectedImage;
 
               return Dialog(
                 backgroundColor: const Color(0xFF1E1E1E),
@@ -716,7 +703,7 @@ class _ActivityTabState extends State<_ActivityTab> {
                             border: Border.all(
                                 color: Colors.white.withOpacity(0.1)),
                           ),
-                          child: selectedImage == null
+                          child: image == null
                               ? const Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -725,12 +712,12 @@ class _ActivityTabState extends State<_ActivityTab> {
                                     SizedBox(height: 8),
                                     Text('إختر صورة',
                                         style:
-                                            TextStyle(color: Color(0xFF43A047))),
+                                          TextStyle(color: Color(0xFF43A047))),
                                   ],
                                 )
                               : ClipRRect(
                                   borderRadius: BorderRadius.circular(12),
-                                  child: Image.file(File(selectedImage!.path),
+                                  child: Image.file(File(image.path),
                                       fit: BoxFit.cover),
                                 ),
                         ),
@@ -747,18 +734,29 @@ class _ActivityTabState extends State<_ActivityTab> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: (selectedImage == null || uploading)
+                              onPressed: (image == null || uploading)
                                   ? null
                                   : () async {
                                       setState(() => uploading = true);
                                       try {
-                                        // Mocking upload for now as we don't have a storage service ready in this context
-                                        // In real app, we use Firebase Storage.
-                                        // For this task, we will simulate the URL.
-                                        final mockUrl = "https://firebasestorage.googleapis.com/v0/b/mock-image.png";
+                                        final ref = FirebaseStorage.instance
+                                            .ref()
+                                            .child('payment_screenshots')
+                                            .child(bookingId)
+                                            .child(
+                                              '${DateTime.now().millisecondsSinceEpoch}.jpg',
+                                            );
+                                        await ref.putFile(
+                                          File(image.path),
+                                          SettableMetadata(
+                                            contentType: 'image/jpeg',
+                                          ),
+                                        );
+                                        final downloadUrl =
+                                            await ref.getDownloadURL();
                                         await bookingService.uploadPaymentScreenshot(
                                           bookingId: bookingId,
-                                          screenshotUrl: mockUrl,
+                                          screenshotUrl: downloadUrl,
                                         );
                                         if (context.mounted) {
                                           Navigator.pop(context);
