@@ -6,6 +6,7 @@ import 'dart:io';
 import '../ui/modern_components.dart';
 import '../../features/user/data/repositories/user_repository.dart';
 import '../../features/user/data/models/user_model.dart';
+import '../services/booking_service.dart';
 
 class UserProfilePage extends StatefulWidget {
   final String userId;

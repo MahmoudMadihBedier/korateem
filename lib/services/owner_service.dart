@@ -21,6 +21,7 @@ abstract class IOwnerService {
   Future<void> contactTeam(String bookingId, String message);
   Future<void> acceptBooking(String bookingId);
   Future<void> rejectBooking(String bookingId, String reason);
+  Future<void> confirmBooking(String bookingId);
 }
 
 class OwnerService implements IOwnerService {
