@@ -1,0 +1,5 @@
+I have implemented the following:
+1. Updated OwnerService to include confirmBooking.
+2. Modified stadium_bookings_review_page.dart to show 'payment_submitted' status and a 'Confirm Final Booking' button for owners.
+3. Updated app logos in Login, Signup, and Home screens to use 'assets/images/image.png'.
+4. Verified that Friend list correctly handles 'Friend' status.

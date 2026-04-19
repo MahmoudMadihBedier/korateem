@@ -66,7 +66,7 @@ class _SignupScreenState extends State<SignupScreen>
               background: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Image.asset('assets/images/studim.jpeg', fit: BoxFit.cover),
+                  Image.asset('assets/images/image.png', fit: BoxFit.cover),
                   DecoratedBox(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -106,7 +106,7 @@ class _SignupScreenState extends State<SignupScreen>
                                 ),
                                 child: ClipOval(
                                   child: Image.asset(
-                                    'assets/images/studim.jpeg',
+                                    'assets/images/image.png',
                                     fit: BoxFit.cover,
                                     errorBuilder: (_, __, ___) => const Icon(
                                       Icons.person_add_alt_1,
