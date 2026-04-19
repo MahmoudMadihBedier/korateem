@@ -21,6 +21,7 @@ abstract class IOwnerService {
   Future<void> contactTeam(String bookingId, String message);
   Future<void> acceptBooking(String bookingId);
   Future<void> rejectBooking(String bookingId, String reason);
+  Future<void> confirmBooking(String bookingId);
 }
 
 class OwnerService implements IOwnerService {
@@ -131,6 +132,18 @@ class OwnerService implements IOwnerService {
       'status': 'rejected',
       'rejectionReason': r,
       'rejectedAt': FieldValue.serverTimestamp(),
+    }, SetOptions(merge: true));
+  }
+
+  @override
+  Future<void> confirmBooking(String bookingId) async {
+    if (bookingId.trim().isEmpty) {
+      throw ArgumentError('bookingId must not be empty');
+    }
+    await bookings.doc(bookingId).set({
+      'status': 'confirmed',
+      'paymentStatus': 'confirmed',
+      'confirmedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
   }
 }
