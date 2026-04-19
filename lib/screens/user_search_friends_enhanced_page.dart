@@ -37,7 +37,7 @@ class _UserSearchFriendsPageState extends State<UserSearchFriendsPage>
     _userRepository = UserRepository();
     _friendRequestRepository = FriendRequestRepository();
     _searchController = TextEditingController();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _loadCurrentUser();
   }
 
@@ -156,6 +156,7 @@ class _UserSearchFriendsPageState extends State<UserSearchFriendsPage>
               unselectedLabelColor: const Color(0xFF808080),
               labelColor: Colors.white,
               tabs: const [
+                Tab(text: 'أصدقائي'),
                 Tab(text: 'جميع المستخدمين'),
                 Tab(text: 'الطلبات المعلقة'),
               ],
@@ -166,7 +167,11 @@ class _UserSearchFriendsPageState extends State<UserSearchFriendsPage>
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: [_buildAllUsersTab(), _buildPendingRequestsTab()],
+              children: [
+                _buildMyFriendsTab(),
+                _buildAllUsersTab(),
+                _buildPendingRequestsTab()
+              ],
             ),
           ),
         ],
@@ -316,6 +321,119 @@ class _UserSearchFriendsPageState extends State<UserSearchFriendsPage>
                           ),
                         ),
                       ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildMyFriendsTab() {
+    return StreamBuilder<List<UserModel>>(
+      stream: _userRepository.getAllUsers(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return ModernLoading();
+        }
+
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return EmptyState(
+            icon: Icons.people_outline,
+            title: 'لا يوجد أصدقاء',
+            subtitle: 'لم تقم بإضافة أصدقاء بعد',
+          );
+        }
+
+        final friends = snapshot.data!
+            .where((user) => _currentUser.friends.contains(user.id))
+            .where((user) =>
+                _searchQuery.isEmpty ||
+                user.name.toLowerCase().contains(_searchQuery.toLowerCase()))
+            .toList();
+
+        if (friends.isEmpty) {
+          return EmptyState(
+            icon: Icons.people_outline,
+            title: 'لا يوجد أصدقاء',
+            subtitle: _searchQuery.isEmpty
+                ? 'لم تقم بإضافة أصدقاء بعد'
+                : 'لم نجد أصدقاء يطابقون البحث',
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(12),
+          itemCount: friends.length,
+          itemBuilder: (context, index) {
+            final user = friends[index];
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: ModernCard(
+                child: Row(
+                  children: [
+                    // Avatar
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: const Color(0xFF43A047),
+                      backgroundImage: (user.profileImage != null &&
+                              user.profileImage!.isNotEmpty)
+                          ? NetworkImage(user.profileImage!)
+                          : null,
+                      child: (user.profileImage == null ||
+                              user.profileImage!.isEmpty)
+                          ? Text(
+                              user.name.isNotEmpty ? user.name[0] : 'U',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                          : null,
+                    ),
+                    const SizedBox(width: 12),
+
+                    // User Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.name,
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                          Text(
+                            user.email,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: const Color(0xFF808080)),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF43A047).withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFF43A047)),
+                      ),
+                      child: const Text(
+                        'صديق',
+                        style: TextStyle(
+                          color: Color(0xFF43A047),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
