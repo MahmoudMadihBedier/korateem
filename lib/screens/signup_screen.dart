@@ -104,10 +104,16 @@ class _SignupScreenState extends State<SignupScreen>
                                         .withOpacity(0.6),
                                   ),
                                 ),
-                                child: const Icon(
-                                  Icons.person_add_alt_1,
-                                  color: Colors.white,
-                                  size: 38,
+                                child: ClipOval(
+                                  child: Image.asset(
+                                    'assets/images/studim.jpeg',
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => const Icon(
+                                      Icons.person_add_alt_1,
+                                      color: Colors.white,
+                                      size: 38,
+                                    ),
+                                  ),
                                 ),
                               ),
                               const SizedBox(height: 12),

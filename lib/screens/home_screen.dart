@@ -177,7 +177,21 @@ class _HomeTabPageState extends State<HomeTabPage>
           SliverAppBar(
             pinned: true,
             expandedHeight: 260,
-            title: const Text('كورة تيم'),
+            title: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.asset(
+                    'assets/images/studim.jpeg',
+                    height: 32,
+                    width: 32,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                const Text('كورة تيم'),
+              ],
+            ),
             actions: [
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
