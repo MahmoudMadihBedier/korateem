@@ -100,10 +100,16 @@ class _LoginScreenState extends State<LoginScreen>
                                           .withOpacity(0.6),
                                     ),
                                   ),
-                                  child: const Icon(
-                                    Icons.sports_soccer,
-                                    color: Colors.white,
-                                    size: 40,
+                                  child: ClipOval(
+                                    child: Image.asset(
+                                      'assets/images/studim.jpeg',
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => const Icon(
+                                        Icons.sports_soccer,
+                                        color: Colors.white,
+                                        size: 40,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),

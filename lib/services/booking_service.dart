@@ -164,7 +164,7 @@ class BookingService implements IBookingService {
     await bookings.doc(bookingId).update({
       'paymentScreenshotUrl': screenshotUrl,
       'paymentStatus': 'submitted',
-      'status': 'accepted', // Finalize booking after payment submission
+      'status': 'payment_submitted',
       'paymentAt': FieldValue.serverTimestamp(),
     });
   }

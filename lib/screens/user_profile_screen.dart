@@ -2,9 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:korateem/services/booking_service.dart';
 import 'package:korateem/services/user_service.dart';
+import 'package:korateem/services/field_service.dart';
 import 'package:korateem/ui/modern_components.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:korateem/features/stadium/data/models/stadium_model.dart';
 
 class UserProfileScreen extends StatefulWidget {
   final String uid;
@@ -569,6 +574,10 @@ class _ActivityTabState extends State<_ActivityTab> {
       case 'approved':
       case 'confirmed':
         return const Color(0xFF43A047);
+      case 'waiting_payment':
+        return const Color(0xFF2196F3);
+      case 'payment_submitted':
+        return const Color(0xFF9C27B0);
       case 'rejected':
         return const Color(0xFFCF6679);
       case 'canceled':
@@ -584,6 +593,10 @@ class _ActivityTabState extends State<_ActivityTab> {
       case 'approved':
       case 'confirmed':
         return 'مقبول';
+      case 'waiting_payment':
+        return 'بانتظار الدفع';
+      case 'payment_submitted':
+        return 'تم دفع العربون';
       case 'rejected':
         return 'مرفوض';
       case 'canceled':
@@ -591,6 +604,196 @@ class _ActivityTabState extends State<_ActivityTab> {
       default:
         return 'قيد المراجعة';
     }
+  }
+
+  Future<void> _showPaymentDialog(
+    BuildContext context, {
+    required String bookingId,
+    required String stadiumId,
+  }) async {
+    final fieldService = FieldService();
+    final bookingService = BookingService();
+    final picker = ImagePicker();
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => FutureBuilder<DocumentSnapshot>(
+        future: fieldService.getField(stadiumId),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: ModernLoading());
+          }
+
+          if (snapshot.hasError || !snapshot.hasData) {
+            return AlertDialog(
+              backgroundColor: const Color(0xFF2A2A2A),
+              title: const Text('خطأ', textAlign: TextAlign.right),
+              content: const Text('تعذر تحميل بيانات الملعب',
+                  textAlign: TextAlign.right),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('إغلاق'),
+                ),
+              ],
+            );
+          }
+
+	          final stadium = StadiumModel.fromFirestore(
+	              snapshot.data!.data() as Map<String, dynamic>, snapshot.data!.id);
+
+	          XFile? selectedImage;
+	          bool uploading = false;
+
+	          return StatefulBuilder(
+	            builder: (context, setState) {
+	              final image = selectedImage;
+
+	              return Dialog(
+	                backgroundColor: const Color(0xFF1E1E1E),
+	                shape: RoundedRectangleBorder(
+	                    borderRadius: BorderRadius.circular(16)),
+	                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'دفع الرسوم - ${stadium.name}',
+                        textAlign: TextAlign.right,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'خيارات الدفع المتاحة:',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(
+                            color: Color(0xFF43A047),
+                            fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 8),
+                      if (stadium.instapayNumber != null)
+                        Text('إنستا باي: ${stadium.instapayNumber}',
+                            textAlign: TextAlign.right),
+                      if (stadium.vodafoneCashNumber != null)
+                        Text('فودافون كاش: ${stadium.vodafoneCashNumber}',
+                            textAlign: TextAlign.right),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'قم بتحميل لقطة شاشة لإثبات الدفع:',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(fontSize: 12, color: Colors.white70),
+                      ),
+                      const SizedBox(height: 12),
+                      GestureDetector(
+                        onTap: () async {
+                          final img = await picker.pickImage(
+                              source: ImageSource.gallery);
+                          if (img != null) {
+                            setState(() => selectedImage = img);
+                          }
+                        },
+                        child: Container(
+                          height: 120,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.05),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                                color: Colors.white.withOpacity(0.1)),
+                          ),
+	                          child: image == null
+	                              ? const Column(
+	                                  mainAxisAlignment: MainAxisAlignment.center,
+	                                  children: [
+	                                    Icon(Icons.add_photo_alternate_outlined,
+	                                        size: 40, color: Color(0xFF43A047)),
+	                                    SizedBox(height: 8),
+	                                    Text('إختر صورة',
+	                                        style:
+	                                            TextStyle(color: Color(0xFF43A047))),
+	                                  ],
+	                                )
+	                              : ClipRRect(
+	                                  borderRadius: BorderRadius.circular(12),
+	                                  child: Image.file(File(image.path),
+	                                      fit: BoxFit.cover),
+	                                ),
+	                        ),
+	                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('إلغاء'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+	                          Expanded(
+	                            child: ElevatedButton(
+	                              onPressed: (image == null || uploading)
+	                                  ? null
+	                                  : () async {
+	                                      setState(() => uploading = true);
+	                                      try {
+	                                        final ref = FirebaseStorage.instance
+	                                            .ref()
+	                                            .child('payment_screenshots')
+	                                            .child(bookingId)
+	                                            .child(
+	                                              '${DateTime.now().millisecondsSinceEpoch}.jpg',
+	                                            );
+	                                        await ref.putFile(
+	                                          File(image.path),
+	                                          SettableMetadata(
+	                                            contentType: 'image/jpeg',
+	                                          ),
+	                                        );
+	                                        final downloadUrl =
+	                                            await ref.getDownloadURL();
+	                                        await bookingService.uploadPaymentScreenshot(
+	                                          bookingId: bookingId,
+	                                          screenshotUrl: downloadUrl,
+	                                        );
+	                                        if (context.mounted) {
+	                                          Navigator.pop(context);
+	                                          ScaffoldMessenger.of(context).showSnackBar(
+	                                            const SnackBar(content: Text('تم رفع إثبات الدفع بنجاح')),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(content: Text('خطأ: $e')),
+                                          );
+                                        }
+                                      } finally {
+                                        if (context.mounted) setState(() => uploading = false);
+                                      }
+                                    },
+                              child: uploading
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2, color: Colors.white))
+                                  : const Text('تأكيد الدفع'),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
   }
 
   Future<void> _promptCancel(
@@ -758,6 +961,8 @@ class _ActivityTabState extends State<_ActivityTab> {
             final statusLabel = _statusLabel(status);
             final reason = myCancelReason();
 
+            final canPay = normalizedStatus == 'waiting_payment' && isCaptain;
+
             return Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: ModernCard(
@@ -859,6 +1064,25 @@ class _ActivityTabState extends State<_ActivityTab> {
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: const Color(0xFFCF6679),
                             ),
+                      ),
+                    ],
+                    if (canPay) ...[
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 44,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _showPaymentDialog(
+                            context,
+                            bookingId: bookingId,
+                            stadiumId: data['stadiumId'] ?? '',
+                          ),
+                          icon: const Icon(Icons.payment_outlined),
+                          label: const Text('دفع الرسوم (العربون)'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF43A047),
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
                       ),
                     ],
                     if (canCancel) ...[
