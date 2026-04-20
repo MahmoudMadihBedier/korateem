@@ -249,7 +249,7 @@ class _StadiumBookingsReviewPageState extends State<StadiumBookingsReviewPage> {
                             ),
                       ),
                     ],
-                    if (paymentScreenshotUrl != null) ...[
+                    if (paymentScreenshotUrl != null && paymentScreenshotUrl.isNotEmpty) ...[
                       const SizedBox(height: 12),
                       if (paymentMethod != null) ...[
                         Text(

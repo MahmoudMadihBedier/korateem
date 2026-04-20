@@ -30,6 +30,7 @@ abstract class IBookingService {
   Future<void> uploadPaymentScreenshot({
     required String bookingId,
     required String screenshotUrl,
+    String? method,
   });
 }
 
@@ -160,9 +161,11 @@ class BookingService implements IBookingService {
   Future<void> uploadPaymentScreenshot({
     required String bookingId,
     required String screenshotUrl,
+    String? method,
   }) async {
     await bookings.doc(bookingId).update({
       'paymentScreenshotUrl': screenshotUrl,
+      'paymentMethod': method,
       'paymentStatus': 'submitted',
       'status': 'payment_submitted',
       'paymentAt': FieldValue.serverTimestamp(),
