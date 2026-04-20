@@ -13,8 +13,7 @@ import '../../services/owner_service.dart';
 class StadiumDashboardPage extends StatefulWidget {
   final String ownerId;
 
-  const StadiumDashboardPage({Key? key, required this.ownerId})
-    : super(key: key);
+  const StadiumDashboardPage({super.key, required this.ownerId});
 
   @override
   State<StadiumDashboardPage> createState() => _StadiumDashboardPageState();

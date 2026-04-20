@@ -12,7 +12,7 @@ import 'package:korateem/screens/stadium_dashboard_page.dart';
 /// This is a reference implementation showing how to integrate
 /// all the new features created for Korateem
 class HomeScreenExample extends StatefulWidget {
-  const HomeScreenExample({Key? key}) : super(key: key);
+  const HomeScreenExample({super.key});
 
   @override
   State<HomeScreenExample> createState() => _HomeScreenExampleState();
@@ -20,7 +20,7 @@ class HomeScreenExample extends StatefulWidget {
 
 class _HomeScreenExampleState extends State<HomeScreenExample> {
   late String _userId;
-  bool _isStadiumOwner = false; // Set based on user role
+  final bool _isStadiumOwner = false; // Set based on user role
 
   @override
   void initState() {
@@ -429,7 +429,7 @@ class FeatureInfo extends StatelessWidget {
   final String title;
   final String description;
 
-  const FeatureInfo({
+  const FeatureInfo({super.key, 
     required this.icon,
     required this.title,
     required this.description,

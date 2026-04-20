@@ -10,7 +10,7 @@ import '../../features/user/data/models/user_model.dart';
 class UserProfilePage extends StatefulWidget {
   final String userId;
 
-  const UserProfilePage({Key? key, required this.userId}) : super(key: key);
+  const UserProfilePage({super.key, required this.userId});
 
   @override
   State<UserProfilePage> createState() => _UserProfilePageState();

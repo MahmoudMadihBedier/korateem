@@ -271,7 +271,7 @@ class _MatchesListState extends State<_MatchesList> {
                     padding: const EdgeInsets.only(bottom: 12),
                     child: MatchCardWidget(match: match),
                   ),
-                )).toList(),
+                )),
               ],
             );
           },

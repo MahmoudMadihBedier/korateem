@@ -7,7 +7,7 @@ import '../../features/user/data/repositories/user_repository.dart';
 class UserProfileEditPage extends StatefulWidget {
   final String userId;
 
-  const UserProfileEditPage({Key? key, required this.userId}) : super(key: key);
+  const UserProfileEditPage({super.key, required this.userId});
 
   @override
   State<UserProfileEditPage> createState() => _UserProfileEditPageState();

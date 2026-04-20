@@ -11,11 +11,11 @@ class UserSearchFriendsPage extends StatefulWidget {
   final String? currentUserImage;
 
   const UserSearchFriendsPage({
-    Key? key,
+    super.key,
     required this.currentUserId,
     this.currentUserName,
     this.currentUserImage,
-  }) : super(key: key);
+  });
 
   @override
   State<UserSearchFriendsPage> createState() => _UserSearchFriendsPageState();
