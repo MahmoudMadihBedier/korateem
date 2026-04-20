@@ -46,10 +46,11 @@ class _UserProfilePageState extends State<UserProfilePage> {
         final String fileName =
             'payment_${bookingId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
         final Reference ref = FirebaseStorage.instance.ref().child(
-          'payment_screenshots/$fileName',
+          'payments/$fileName',
         );
 
-        await ref.putFile(imageFile);
+        final bytes = await image.readAsBytes();
+        await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
         final String downloadUrl = await ref.getDownloadURL();
 
         await bookingService.uploadPaymentScreenshot(
@@ -255,7 +256,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
           'profiles/$fileName',
         );
 
-        await ref.putFile(imageFile);
+        final bytes = await image.readAsBytes();
+        await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
         final String downloadUrl = await ref.getDownloadURL();
 
         final updatedUser = UserModel(
