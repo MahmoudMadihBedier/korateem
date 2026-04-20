@@ -6,8 +6,7 @@ import '../../features/user/data/repositories/user_repository.dart';
 class UserSearchFriendsPage extends StatefulWidget {
   final String currentUserId;
 
-  const UserSearchFriendsPage({Key? key, required this.currentUserId})
-    : super(key: key);
+  const UserSearchFriendsPage({super.key, required this.currentUserId});
 
   @override
   State<UserSearchFriendsPage> createState() => _UserSearchFriendsPageState();

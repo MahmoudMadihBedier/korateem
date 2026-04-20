@@ -60,7 +60,7 @@ class ModernCard extends StatefulWidget {
   final Duration animateInDelay;
 
   const ModernCard({
-    Key? key,
+    super.key,
     required this.child,
     this.padding = const EdgeInsets.all(16),
     this.onTap,
@@ -70,10 +70,10 @@ class ModernCard extends StatefulWidget {
     this.glassOpacity = 0.14,
     this.animateIn = true,
     this.animateInDelay = Duration.zero,
-  }) : super(key: key);
+  });
 
   const ModernCard.glass({
-    Key? key,
+    super.key,
     required this.child,
     this.padding = const EdgeInsets.all(16),
     this.onTap,
@@ -82,8 +82,7 @@ class ModernCard extends StatefulWidget {
     this.glassOpacity = 0.14,
     this.animateIn = true,
     this.animateInDelay = Duration.zero,
-  })  : glassy = true,
-        super(key: key);
+  })  : glassy = true;
 
   @override
   State<ModernCard> createState() => _ModernCardState();
@@ -222,7 +221,7 @@ class PostCard extends StatelessWidget {
   final VoidCallback onShare;
 
   const PostCard({
-    Key? key,
+    super.key,
     required this.userName,
     required this.userInitial,
     required this.content,
@@ -232,7 +231,7 @@ class PostCard extends StatelessWidget {
     required this.onLike,
     required this.onComment,
     required this.onShare,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -351,7 +350,7 @@ class StadiumCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const StadiumCard({
-    Key? key,
+    super.key,
     required this.name,
     required this.location,
     required this.rating,
@@ -359,7 +358,7 @@ class StadiumCard extends StatelessWidget {
     this.image,
     this.photos = const [],
     this.onTap,
-  }) : super(key: key);
+  });
 
   ImageProvider _photoProvider(String value) {
     final v = value.trim();
@@ -499,13 +498,13 @@ class UserCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const UserCard({
-    Key? key,
+    super.key,
     required this.name,
     required this.position,
     required this.rating,
     required this.matches,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -598,12 +597,12 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
   final bool glassy;
 
   const ModernAppBar({
-    Key? key,
+    super.key,
     required this.title,
     this.showNotification = true,
     this.onNotificationTap,
     this.glassy = true,
-  }) : super(key: key);
+  });
 
   @override
   Size get preferredSize => Size.fromHeight(56);
@@ -660,7 +659,7 @@ class ModernAppBar extends StatelessWidget implements PreferredSizeWidget {
 class ModernLoading extends StatelessWidget {
   final String? message;
 
-  const ModernLoading({Key? key, this.message}) : super(key: key);
+  const ModernLoading({super.key, this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -690,13 +689,13 @@ class EmptyState extends StatelessWidget {
   final String? actionLabel;
 
   const EmptyState({
-    Key? key,
+    super.key,
     required this.icon,
     required this.title,
     this.subtitle,
     this.onAction,
     this.actionLabel,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

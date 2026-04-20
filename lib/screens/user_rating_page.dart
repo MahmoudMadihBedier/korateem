@@ -11,8 +11,7 @@ class UserRatingPage extends StatefulWidget {
   final String userId;
   final String userName;
 
-  const UserRatingPage({Key? key, required this.userId, required this.userName})
-    : super(key: key);
+  const UserRatingPage({super.key, required this.userId, required this.userName});
 
   @override
   State<UserRatingPage> createState() => _UserRatingPageState();

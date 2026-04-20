@@ -21,12 +21,10 @@ final ThemeData korateemTheme = ThemeData(
     primary: Color(0xFF43A047), // Vibrant green
     secondary: Color(0xFF66BB6A), // Light green
     tertiary: Color(0xFF4CAF50), // Standard green
-    surface: Color(0xFF1E1E1E), // Dark surface
-    background: Color(0xFF121212), // Deep dark background
+    surface: Color(0xFF1E1E1E), // Deep dark background
     error: Color(0xFFCF6679),
     onPrimary: Colors.white,
     onSecondary: Colors.black,
-    onBackground: Colors.white,
     onSurface: Colors.white,
   ),
 
