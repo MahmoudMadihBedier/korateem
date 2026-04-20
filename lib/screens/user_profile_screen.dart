@@ -760,13 +760,12 @@ class _ActivityTabState extends State<_ActivityTab> {
                                         final String fileName = 'payment_${bookingId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
                                         final ref = FirebaseStorage.instance
                                             .ref()
-                                            .child('payment_screenshots')
+                                            .child('payments')
                                             .child(fileName);
-                                        await ref.putFile(
-                                          File(image.path),
-                                          SettableMetadata(
-                                            contentType: 'image/jpeg',
-                                          ),
+                                        final bytes = await image.readAsBytes();
+                                        await ref.putData(
+                                          bytes,
+                                          SettableMetadata(contentType: 'image/jpeg'),
                                         );
                                         final downloadUrl =
                                             await ref.getDownloadURL();

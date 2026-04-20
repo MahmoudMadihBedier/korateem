@@ -63,7 +63,8 @@ class _StadiumProfilePageState extends State<StadiumProfilePage> {
         final ref = FirebaseStorage.instance
             .ref()
             .child('stadiums/qrs/${DateTime.now().millisecondsSinceEpoch}.jpg');
-        await ref.putFile(file);
+        final bytes = await image.readAsBytes();
+        await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
         final url = await ref.getDownloadURL();
         setState(() {
           _instapayQrUrl = url;
