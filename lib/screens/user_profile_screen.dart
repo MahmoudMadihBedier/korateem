@@ -643,6 +643,8 @@ class _ActivityTabState extends State<_ActivityTab> {
           final stadium = StadiumModel.fromFirestore(
               snapshot.data!.data() as Map<String, dynamic>, snapshot.data!.id);
 
+          String? selectedPaymentMethod;
+
           XFile? selectedImage;
           bool uploading = false;
 
@@ -674,12 +676,28 @@ class _ActivityTabState extends State<_ActivityTab> {
                             fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
-                      if (stadium.instapayNumber != null)
-                        Text('إنستا باي: ${stadium.instapayNumber}',
-                            textAlign: TextAlign.right),
-                      if (stadium.vodafoneCashNumber != null)
-                        Text('فودافون كاش: ${stadium.vodafoneCashNumber}',
-                            textAlign: TextAlign.right),
+                      if (stadium.instapayNumber != null && stadium.instapayNumber!.isNotEmpty)
+                        ListTile(
+                          title: Text('إنستا باي: ${stadium.instapayNumber}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white, fontSize: 14)),
+                          trailing: Radio<String>(
+                            value: 'InstaPay',
+                            groupValue: selectedPaymentMethod,
+                            onChanged: (v) => setState(() => selectedPaymentMethod = v),
+                            activeColor: const Color(0xFF43A047),
+                          ),
+                          onTap: () => setState(() => selectedPaymentMethod = 'InstaPay'),
+                        ),
+                      if (stadium.vodafoneCashNumber != null && stadium.vodafoneCashNumber!.isNotEmpty)
+                        ListTile(
+                          title: Text('فودافون كاش: ${stadium.vodafoneCashNumber}', textAlign: TextAlign.right, style: const TextStyle(color: Colors.white, fontSize: 14)),
+                          trailing: Radio<String>(
+                            value: 'Vodafone Cash',
+                            groupValue: selectedPaymentMethod,
+                            onChanged: (v) => setState(() => selectedPaymentMethod = v),
+                            activeColor: const Color(0xFF43A047),
+                          ),
+                          onTap: () => setState(() => selectedPaymentMethod = 'Vodafone Cash'),
+                        ),
                       const SizedBox(height: 20),
                       const Text(
                         'قم بتحميل لقطة شاشة لإثبات الدفع:',
@@ -739,13 +757,11 @@ class _ActivityTabState extends State<_ActivityTab> {
                                   : () async {
                                       setState(() => uploading = true);
                                       try {
+                                        final String fileName = 'payment_${bookingId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
                                         final ref = FirebaseStorage.instance
                                             .ref()
                                             .child('payment_screenshots')
-                                            .child(bookingId)
-                                            .child(
-                                              '${DateTime.now().millisecondsSinceEpoch}.jpg',
-                                            );
+                                            .child(fileName);
                                         await ref.putFile(
                                           File(image.path),
                                           SettableMetadata(
@@ -757,6 +773,7 @@ class _ActivityTabState extends State<_ActivityTab> {
                                         await bookingService.uploadPaymentScreenshot(
                                           bookingId: bookingId,
                                           screenshotUrl: downloadUrl,
+                                          method: selectedPaymentMethod,
                                         );
                                         if (context.mounted) {
                                           Navigator.pop(context);
@@ -908,6 +925,7 @@ class _ActivityTabState extends State<_ActivityTab> {
             final time = (data['time'] ?? '').toString();
             final endTime = (data['endTime'] ?? '').toString();
             final status = (data['status'] ?? 'pending').toString();
+            final paymentScreenshotUrl = (data['paymentScreenshotUrl'] ?? '').toString();
             final rejectionReason =
                 (data['rejectionReason'] ?? '').toString().trim();
 
@@ -1045,6 +1063,59 @@ class _ActivityTabState extends State<_ActivityTab> {
                       textAlign: TextAlign.right,
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
+                    if (paymentScreenshotUrl.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      const Text(
+                        'إيصال الدفع:',
+                        textAlign: TextAlign.right,
+                        style: TextStyle(fontSize: 12, color: Colors.white70),
+                      ),
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => Dialog(
+                              backgroundColor: Colors.transparent,
+                              insetPadding: const EdgeInsets.all(10),
+                              child: Stack(
+                                alignment: Alignment.topRight,
+                                children: [
+                                  Center(
+                                    child: InteractiveViewer(
+                                      child: Image.network(paymentScreenshotUrl),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 10,
+                                    right: 10,
+                                    child: IconButton(
+                                      icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                                      onPressed: () => Navigator.pop(context),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            paymentScreenshotUrl,
+                            height: 100,
+                            width: 100,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              height: 100,
+                              width: 100,
+                              color: Colors.white10,
+                              child: const Icon(Icons.broken_image_outlined, color: Colors.white24),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                     if (alreadyCanceled) ...[
                       const SizedBox(height: 10),
                       Text(
