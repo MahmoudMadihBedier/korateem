@@ -1,3 +1,4 @@
+import 'package:korateem/services/booking_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
@@ -31,6 +32,7 @@ class _UserProfilePageState extends State<UserProfilePage> {
   }
 
   Future<void> _handlePaymentUpload(String bookingId, String method) async {
+    final bookingService = BookingService();
     try {
       final XFile? image = await _imagePicker.pickImage(
         source: ImageSource.gallery,
@@ -42,21 +44,20 @@ class _UserProfilePageState extends State<UserProfilePage> {
 
         final File imageFile = File(image.path);
         final String fileName =
-            'payment_${bookingId}_${DateTime.now().millisecondsSinceEpoch}';
+            'payment_${bookingId}_${DateTime.now().millisecondsSinceEpoch}.jpg';
         final Reference ref = FirebaseStorage.instance.ref().child(
           'payments/$fileName',
         );
 
-        await ref.putFile(imageFile);
+        final bytes = await image.readAsBytes();
+        await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
         final String downloadUrl = await ref.getDownloadURL();
 
-        await FirebaseFirestore.instance.collection('bookings').doc(bookingId).update({
-          'paymentScreenshotUrl': downloadUrl,
-          'paymentMethod': method,
-          'paymentStatus': 'submitted',
-          'status': 'accepted',
-          'paymentAt': FieldValue.serverTimestamp(),
-        });
+        await bookingService.uploadPaymentScreenshot(
+          bookingId: bookingId,
+          screenshotUrl: downloadUrl,
+          method: method,
+        );
 
         setState(() => _isLoading = false);
 
@@ -255,7 +256,8 @@ class _UserProfilePageState extends State<UserProfilePage> {
           'profiles/$fileName',
         );
 
-        await ref.putFile(imageFile);
+        final bytes = await image.readAsBytes();
+        await ref.putData(bytes, SettableMetadata(contentType: 'image/jpeg'));
         final String downloadUrl = await ref.getDownloadURL();
 
         final updatedUser = UserModel(
@@ -673,6 +675,37 @@ class _UserProfilePageState extends State<UserProfilePage> {
                           TextButton(
                             onPressed: () => _showPaymentDetails({...booking, 'id': doc.id}),
                             child: const Text('دفع', style: TextStyle(fontSize: 12)),
+                          ),
+                        if (booking['paymentScreenshotUrl'] != null)
+                          TextButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => Dialog(
+                                  backgroundColor: Colors.transparent,
+                                  insetPadding: const EdgeInsets.all(10),
+                                  child: Stack(
+                                    alignment: Alignment.topRight,
+                                    children: [
+                                      Center(
+                                        child: InteractiveViewer(
+                                          child: Image.network(booking['paymentScreenshotUrl']),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 10,
+                                        right: 10,
+                                        child: IconButton(
+                                          icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                                          onPressed: () => Navigator.pop(context),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                            child: const Text('الإيصال', style: TextStyle(fontSize: 12, color: Color(0xFF43A047))),
                           ),
                       ],
                     ),
