@@ -30,30 +30,46 @@ jobs:
       - name: Install Flutter dependencies
         run: flutter pub get
 
-      # ===== FIX iOS DEPLOYMENT TARGET TO 15.0 =====
-      - name: Set iOS deployment target to 15.0 in Podfile
+      # ===== FORCE iOS DEPLOYMENT TARGET TO 15.0 =====
+      - name: Force iOS Deployment Target to 15.0
         run: |
+          echo "--- Updating Podfile ---"
           cd ios
           if grep -q "^platform :ios," Podfile; then
             sed -i '' 's/^platform :ios, .*/platform :ios, "15.0"/' Podfile
           else
             echo 'platform :ios, "15.0"' | cat - Podfile > tmp && mv tmp Podfile
           fi
-          cat Podfile
-
-      - name: Set iOS deployment target to 15.0 in Xcode project
-        run: |
-          # Update all occurrences of IPHONEOS_DEPLOYMENT_TARGET to 15.0
+          
+          # Add post_install script to Podfile to force all pods to 15.0
+          if ! grep -q "force all pods to 15.0" Podfile; then
+            sed -i '' '/post_install do |installer|/,/end/ {
+              /config.build_settings/! s/^end$/    installer.pods_project.targets.each do |target|\
+                target.build_configurations.each do |config|\
+                  config.build_settings[\'IPHONEOS_DEPLOYMENT_TARGET\'] = \'15.0\'\
+                end\
+              end\
+            end/
+            }' Podfile
+          fi
+          cd ..
+          
+          echo "--- Updating project.pbxproj ---"
           find ios -name "project.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]\+;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' {} \;
-          # Also explicitly set for the Runner target (in case of multiple targets)
-          find ios -name "project.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]\+;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' {} \;
-
-      - name: Verify deployment target
-        run: |
-          echo "Checking Podfile platform:"
-          grep "^platform :ios," ios/Podfile || echo "Platform line not found"
-          echo "Checking project.pbxproj for IPHONEOS_DEPLOYMENT_TARGET:"
-          grep "IPHONEOS_DEPLOYMENT_TARGET" ios/Runner.xcodeproj/project.pbxproj | head -5
+          
+          echo "--- Updating AppFrameworkInfo.plist ---"
+          /usr/libexec/PlistBuddy -c "Set :MinimumOSVersion 15.0" ios/Flutter/AppFrameworkInfo.plist || \
+          /usr/libexec/PlistBuddy -c "Add :MinimumOSVersion string 15.0" ios/Flutter/AppFrameworkInfo.plist
+          
+          echo "--- Updating Info.plist ---"
+          /usr/libexec/PlistBuddy -c "Set :MinimumOSVersion 15.0" ios/Runner/Info.plist || \
+          /usr/libexec/PlistBuddy -c "Add :MinimumOSVersion string 15.0" ios/Runner/Info.plist
+          
+          echo "--- Removing ephemeral Swift package to force regeneration ---"
+          rm -rf ios/Flutter/ephemeral
+          
+          echo "--- Regenerating iOS project files ---"
+          flutter build ios --config-only
 
       # ===== BUILD =====
       - name: Install CocoaPods dependencies
