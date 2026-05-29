@@ -3,6 +3,7 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/images/koraa_icon_48x48.png"
   min_sdk_android: 21 # android min sdk min values
+  remove_alpha_ios: true
   web:
     generate: true
     image_path: "assets/images/koraa_icon_48x48.png"
