@@ -4,7 +4,7 @@
     <application
         android:label="korateem"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/launcher_icon"
         android:enableOnBackInvokedCallback="true">
         <!-- Workaround for some devices/GPUs that crash with Impeller (Vulkan) in debug. -->
         <meta-data
