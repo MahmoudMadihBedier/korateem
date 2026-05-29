@@ -30,21 +30,30 @@ jobs:
       - name: Install Flutter dependencies
         run: flutter pub get
 
-      # ===== FIX iOS DEPLOYMENT TARGET =====
-      - name: Set iOS deployment target to 14.0 in Podfile
+      # ===== FIX iOS DEPLOYMENT TARGET TO 15.0 =====
+      - name: Set iOS deployment target to 15.0 in Podfile
         run: |
           cd ios
-          # If platform line exists, replace it; otherwise add one at the top
           if grep -q "^platform :ios," Podfile; then
-            sed -i '' 's/^platform :ios, .*/platform :ios, "14.0"/' Podfile
+            sed -i '' 's/^platform :ios, .*/platform :ios, "15.0"/' Podfile
           else
-            echo 'platform :ios, "14.0"' | cat - Podfile > tmp && mv tmp Podfile
+            echo 'platform :ios, "15.0"' | cat - Podfile > tmp && mv tmp Podfile
           fi
           cat Podfile
 
-      - name: Set iOS deployment target to 14.0 in Xcode project
+      - name: Set iOS deployment target to 15.0 in Xcode project
         run: |
-          find ios -name "project.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]\+;/IPHONEOS_DEPLOYMENT_TARGET = 14.0;/g' {} \;
+          # Update all occurrences of IPHONEOS_DEPLOYMENT_TARGET to 15.0
+          find ios -name "project.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]\+;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' {} \;
+          # Also explicitly set for the Runner target (in case of multiple targets)
+          find ios -name "project.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]\+;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' {} \;
+
+      - name: Verify deployment target
+        run: |
+          echo "Checking Podfile platform:"
+          grep "^platform :ios," ios/Podfile || echo "Platform line not found"
+          echo "Checking project.pbxproj for IPHONEOS_DEPLOYMENT_TARGET:"
+          grep "IPHONEOS_DEPLOYMENT_TARGET" ios/Runner.xcodeproj/project.pbxproj | head -5
 
       # ===== BUILD =====
       - name: Install CocoaPods dependencies
