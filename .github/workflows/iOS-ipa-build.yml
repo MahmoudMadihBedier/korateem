@@ -1,0 +1,103 @@
+name: iOS-ipa-build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-ios:
+    name: 🎉 iOS Build
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          architecture: x64
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.pub-cache
+            build/
+          key: flutter-pub-${{ hashFiles('pubspec.lock') }}
+          restore-keys: flutter-pub-
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      # ===== FORCE iOS DEPLOYMENT TARGET TO 15.0 =====
+      - name: Force iOS Deployment Target to 15.0
+        run: |
+          echo "--- Updating Podfile ---"
+          cd ios
+          if grep -q "^platform :ios," Podfile; then
+            sed -i '' 's/^platform :ios, .*/platform :ios, "15.0"/' Podfile
+          else
+            echo 'platform :ios, "15.0"' | cat - Podfile > tmp && mv tmp Podfile
+          fi
+          
+          # Add post_install script to Podfile to force all pods to 15.0
+          if ! grep -q "force all pods to 15.0" Podfile; then
+            sed -i '' '/post_install do |installer|/,/end/ {
+              /config.build_settings/! s/^end$/    installer.pods_project.targets.each do |target|\
+                target.build_configurations.each do |config|\
+                  config.build_settings[\'IPHONEOS_DEPLOYMENT_TARGET\'] = \'15.0\'\
+                end\
+              end\
+            end/
+            }' Podfile
+          fi
+          cd ..
+          
+          echo "--- Updating project.pbxproj ---"
+          find ios -name "project.pbxproj" -exec sed -i '' 's/IPHONEOS_DEPLOYMENT_TARGET = [0-9.]\+;/IPHONEOS_DEPLOYMENT_TARGET = 15.0;/g' {} \;
+          
+          echo "--- Updating AppFrameworkInfo.plist ---"
+          /usr/libexec/PlistBuddy -c "Set :MinimumOSVersion 15.0" ios/Flutter/AppFrameworkInfo.plist || \
+          /usr/libexec/PlistBuddy -c "Add :MinimumOSVersion string 15.0" ios/Flutter/AppFrameworkInfo.plist
+          
+          echo "--- Updating Info.plist ---"
+          /usr/libexec/PlistBuddy -c "Set :MinimumOSVersion 15.0" ios/Runner/Info.plist || \
+          /usr/libexec/PlistBuddy -c "Add :MinimumOSVersion string 15.0" ios/Runner/Info.plist
+          
+          echo "--- Removing ephemeral Swift package to force regeneration ---"
+          rm -rf ios/Flutter/ephemeral
+          
+          echo "--- Regenerating iOS project files ---"
+          flutter build ios --config-only
+
+      # ===== BUILD =====
+      - name: Install CocoaPods dependencies
+        run: |
+          cd ios
+          pod install --repo-update
+        env:
+          COCOAPODS_DISABLE_STATS: true
+
+      - name: Build iOS release IPA (no codesign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Prepare IPA structure
+        run: |
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          mv Runner.app Payload/
+
+      - name: Zip into IPA
+        run: |
+          cd build/ios/iphoneos
+          zip -qq -r -9 FlutterIpaExport.ipa Payload
+
+      - name: Upload IPA to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/ios/iphoneos/FlutterIpaExport.ipa
+          tag: v1.0
+          overwrite: true
+          body: "This is first release"
